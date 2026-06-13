@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoadCaster — Every Close Call Has a Story</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <!-- Google Fonts for premium typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Share+Tech+Mono&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Three.js ES Modules Import Map -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.184.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.184.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+    <!-- 3D Canvas Container -->
+    <div id="canvas-container"></div>
+
+    <!-- Gameplay HUD -->
+    <div id="hud" class="hud-container hidden">
+        <div class="hud-card main-stats">
+            <div class="stat-group">
+                <span class="stat-label">SCORE</span>
+                <span id="hud-score" class="stat-value mono">000,000</span>
+            </div>
+            <div class="stat-group">
+                <span class="stat-label">SPEED</span>
+                <span class="stat-value-container">
+                    <span id="hud-speed" class="stat-value mono">0</span>
+                    <span class="stat-unit">km/h</span>
+                </span>
+            </div>
+            <div class="stat-group">
+                <span class="stat-label">DISTANCE</span>
+                <span class="stat-value-container">
+                    <span id="hud-distance" class="stat-value mono">0</span>
+                    <span class="stat-unit">m</span>
+                </span>
+            </div>
+            <div class="stat-group sub-stat">
+                <span class="stat-label">BEST</span>
+                <span id="hud-highscore" class="stat-value-sub mono">0</span>
+            </div>
+        </div>
+
+        <div id="combo-badge" class="hud-card combo-badge hidden">
+            <span class="combo-fire">🔥</span>
+            <span class="combo-label">COMBO</span>
+            <span id="hud-combo" class="combo-value mono">x0</span>
+        </div>
+        
+        <div class="hud-card controls-hint">
+            <div><span class="key-badge">A</span> <span class="key-badge">D</span> or <span class="key-badge">←</span> <span class="key-badge">→</span> to Swerve</div>
+            <div style="margin-top: 4px;"><span class="key-badge">Space</span> to Boost</div>
+        </div>
+    </div>
+
+    <!-- Live Commentary Broadcast Panel (Bottom) -->
+    <div id="broadcast-panel" class="broadcast-panel hidden">
+        <div class="broadcast-left">
+            <div class="live-indicator">
+                <span class="live-dot"></span>
+                <span>LIVE FEED</span>
+            </div>
+            <div class="avatar-container">
+                <div id="commentator-avatar" class="avatar">🎙️</div>
+                <div class="avatar-details">
+                    <span id="commentator-name" class="name">JASPER</span>
+                    <span id="commentator-role" class="role">Lead Caster</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="broadcast-center">
+            <div class="commentary-box">
+                <p id="commentary-text" class="commentary-text">Initializing broadcast feed...</p>
+            </div>
+        </div>
+
+        <div class="broadcast-right">
+            <div class="control-row">
+                <label for="mode-select" class="control-label">CASTER MODE</label>
+                <div class="mode-tabs">
+                    <button class="mode-tab active" data-mode="sports">Sports</button>
+                    <button class="mode-tab" data-mode="narrator">Dramatic</button>
+                    <button class="mode-tab" data-mode="savage">Savage</button>
+                </div>
+            </div>
+            <div class="control-row volume-container">
+                <span class="vol-icon">🔊</span>
+                <input type="range" id="volume-slider" min="0" max="100" value="70">
+                <span id="tts-type-label" class="tts-badge local-tts">Local TTS</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- NLP Debug Panel (Right Side) -->
+    <div id="debug-panel" class="debug-panel">
+        <div class="debug-header">
+            <h3>NLP PIPELINE DEBUGGER</h3>
+            <button id="toggle-debug-btn" class="toggle-debug-btn">Collapse</button>
+        </div>
+        <div class="debug-body">
+            <div class="debug-section">
+                <span class="section-title">Commentary Status</span>
+                <div class="status-indicators">
+                    <div class="status-indicator">
+                        <span class="status-label">NLP Engine:</span>
+                        <span class="status-val success">ONLINE</span>
+                    </div>
+                    <div class="status-indicator">
+                        <span class="status-label">TTS Model:</span>
+                        <span id="debug-tts-status" class="status-val warning">LOADING...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="debug-section">
+                <span class="section-title">Gameplay Event Trigger</span>
+                <div id="debug-event-type" class="debug-tag event-tag">-</div>
+                <div class="event-meta-grid">
+                    <div>Speed: <span id="debug-meta-speed" class="mono">-</span></div>
+                    <div>Combo: <span id="debug-meta-combo" class="mono">-</span></div>
+                    <div>Vehicle: <span id="debug-meta-vehicle" class="mono">-</span></div>
+                    <div>Distance: <span id="debug-meta-dist" class="mono">-</span></div>
+                </div>
+            </div>
+
+            <div class="debug-section">
+                <span class="section-title">Context Tag Classification</span>
+                <div id="debug-context-tags" class="tags-container">
+                    <span class="empty-placeholder">No active tags</span>
+                </div>
+            </div>
+
+            <div class="debug-section">
+                <span class="section-title">Commentary Generation Metrics</span>
+                <div class="metrics-grid">
+                    <div>Momentum: <span id="debug-metric-momentum" class="metric-val">-</span></div>
+                    <div>Template Pool: <span id="debug-metric-pool" class="metric-val">-</span></div>
+                    <div>Caster Voice: <span id="debug-metric-voice" class="metric-val">-</span></div>
+                </div>
+            </div>
+
+            <div class="debug-section">
+                <span class="section-title">Raw JSON Payload</span>
+                <pre id="debug-json-display" class="json-display">{}</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Start Overlay Screen -->
+    <div id="start-overlay" class="overlay">
+        <div class="overlay-card glass">
+            <div class="glowing-header">
+                <h1 class="logo-text">ROADCASTER</h1>
+                <p class="tagline">Every Close Call Has a Story.</p>
+            </div>
+            
+            <div class="overlay-body">
+                <p class="desc">
+                    Experience a Three.js 3D driving simulator powered by a real-time **Context-Aware Sports Commentary Engine (CASCE)**.
+                    Evasion events are analyzed using natural language processing to produce voice-narrated, sports-style commentary.
+                </p>
+
+                <div class="setup-group">
+                    <h3>SELECT COMMENTARY STYLE</h3>
+                    <div class="setup-mode-cards">
+                        <div class="setup-mode-card active" data-mode="sports">
+                            <span class="mode-icon">🎙️</span>
+                            <span class="mode-title">Sports Broadcast</span>
+                            <span class="mode-desc">High-energy play-by-play, hype commentary.</span>
+                        </div>
+                        <div class="setup-mode-card" data-mode="narrator">
+                            <span class="mode-icon">🎬</span>
+                            <span class="mode-title">Dramatic Narrator</span>
+                            <span class="mode-desc">Noir-style action movie cinematic reflection.</span>
+                        </div>
+                        <div class="setup-mode-card" data-mode="savage">
+                            <span class="mode-icon">💀</span>
+                            <span class="mode-title">Savage Critic</span>
+                            <span class="mode-desc">Witty, sarcastic jabs and backhanded compliments.</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="start-btn" class="action-btn">START DRIVING</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Overlay Screen -->
+    <div id="gameover-overlay" class="overlay hidden">
+        <div class="overlay-card glass">
+            <div class="glowing-header error">
+                <h1 class="logo-text danger">CRASH DETECTED</h1>
+                <p class="tagline">The run has come to a dramatic end.</p>
+            </div>
+
+            <div class="overlay-body">
+                <div class="final-stats-container">
+                    <div class="final-stat-card">
+                        <span class="final-label">SCORE</span>
+                        <span id="final-score" class="final-val mono">0</span>
+                    </div>
+                    <div class="final-stat-card">
+                        <span class="final-label">DISTANCE</span>
+                        <span id="final-distance" class="final-val mono">0m</span>
+                    </div>
+                    <div class="final-stat-card">
+                        <span class="final-label">MAX COMBO</span>
+                        <span id="final-combo" class="final-val mono">x0</span>
+                    </div>
+                    <div class="final-stat-card">
+                        <span class="final-label">TOP SPEED</span>
+                        <span id="final-speed" class="final-val mono">0 km/h</span>
+                    </div>
+                </div>
+
+                <div class="final-commentary-box">
+                    <h4>FINAL BROADCAST SUMMARY:</h4>
+                    <p id="final-commentary" class="commentary-text">Generating final report...</p>
+                </div>
+
+                <button id="restart-btn" class="action-btn">DRIVE AGAIN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Game Scripts -->
+    <script type="module" src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

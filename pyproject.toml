@@ -1,0 +1,15 @@
+[project]
+name = "roadcaster"
+version = "0.1.0"
+description = "Three.js Highway Game with Context-Aware Sports Commentary Engine"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "flask>=3.0.0",
+    "numpy>=1.26.0",
+    "soundfile>=0.12.0",
+    "kittentts @ https://github.com/KittenML/KittenTTS/releases/download/0.8.1/kittentts-0.8.1-py3-none-any.whl",
+]
+
+[tool.setuptools]
+py-modules = ["app", "game", "commentary", "tts_provider"]

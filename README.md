@@ -1,0 +1,62 @@
+# RoadCaster
+
+> **Every Close Call Has a Story.**  
+> A browser-based 3D highway driving game using Three.js that demonstrates Natural Language Processing (NLP) through real-time context-aware commentary and voice narration.
+
+Developed for **LingHacks VII** (Computational Linguistics Hackathon).
+
+---
+
+## 🚗 Key Innovation: CASCE
+Unlike typical chatbots or text summarizers, **RoadCaster** applies Natural Language Generation (NLG) and Text-To-Speech (TTS) in an interactive 3D gaming environment. Every evasion, overtake, and speed milestone generates a structured gameplay event payload which is sent to the backend **Context-Aware Sports Commentary Engine (CASCE)**.
+
+### The NLG Pipeline
+```
+Gameplay Event ➔ Classification ➔ Context Tagging ➔ Momentum Analysis ➔ Template Selection ➔ Anti-Repetition Gate ➔ Voice Generation (Kitten TTS)
+```
+
+- **Context Tagging**: Evaluates speeds, traffic densities, combo streaks, weave maneuvers, clean driving stretches, and high score records.
+- **Anti-Repetition Gate**: Employs a cooldown decay mapping (8 turns per template) to ensure commentaries feel unique and deliberate across the session.
+- **Rate-Limiting & Priority Queuing**: Gameplay events are queued and throttled to one line every 2.5 seconds (priority: crash > combo > near miss > overtake) to match voice length and prevent overlap.
+- **3 Caster Modes**:
+  1. **Sports Broadcast** (Jasper voice): High-energy, reactive, and excited play-by-play.
+  2. **Dramatic Narrator** (Hugo voice): Cinematic, dark, and reflective action-movie style narration.
+  3. **Savage Critic** (Kiki voice): Sarcastic, funny, and witty jabs at the driver's expense.
+
+---
+
+## 🛠️ Technology Stack
+- **Frontend**: Three.js (0.184.0), HTML5, CSS3 (Glassmorphic dark layout), Vanilla JavaScript (ES Modules).
+- **Backend**: Python 3.12, Flask, Kitten TTS (15M Nano model), PyTorch/ONNX, NumPy, Soundfile.
+- **Package Manager**: uv.
+
+---
+
+## 🚀 Getting Started
+
+Ensure you have `uv` installed.
+
+### 1. Install Dependencies
+```bash
+uv pip install -e .
+```
+
+This will automatically pull in Flask, NumPy, Soundfile, and build the local Kitten TTS package from its GitHub release wheel.
+
+### 2. Start the Server
+```bash
+python app.py
+```
+
+*Note: On first startup, the server will initialize the Kitten TTS Nano model, which may download ~35MB model weights to your local hub.*
+
+### 3. Open in Browser
+Visit [http://localhost:5000](http://localhost:5000) in your web browser.
+
+---
+
+## 🎮 How to Play
+- **Swerve / Dodge**: Use `A` and `D` keys or `Left` and `Right` arrow keys to switch lanes smoothly.
+- **Speed Boost**: Press and hold `Space` or `Up Arrow` to accelerate.
+- **Dodge Traffic**: Get as close to cars, buses, and trucks as possible without crashing to build combos and scores.
+- **Toggle Debug View**: Collapse or expand the **NLP Pipeline Debugger** on the right side of the screen to inspect event JSON payloads, active context tags, caster voices, and momentum in real-time.
