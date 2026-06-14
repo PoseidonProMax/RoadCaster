@@ -5,6 +5,7 @@ from game import validate_event_data
 from commentary import CommentaryEngine
 from tts_provider import KittenTTSProvider
 from narrative import NarrativeEngine
+from action_narrator import ActionNarrator
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
@@ -16,6 +17,7 @@ app = Flask(__name__)
 commentary_engine = CommentaryEngine()
 tts_provider = KittenTTSProvider()
 narrative_engine = NarrativeEngine()
+action_narrator = ActionNarrator()
 
 @app.route("/")
 def index():
@@ -79,12 +81,30 @@ def get_narrative():
     voice = request.args.get("voice", None)
     
     try:
-        result = narrative_engine.evaluate(events, current_time, current_speed, current_combo, critical=critical)
+        actions = data.get("actions", [])
+        result = narrative_engine.evaluate(events, current_time, current_speed, current_combo, critical=critical, actions=actions)
         
-        if not result["should_speak"]:
-            return jsonify({"skip": True})
+        # If there are physical actions, attempt to compose a play-by-play commentary
+        commentary_text = ""
+        if actions:
+            commentary_text = action_narrator.compose(actions, result["state"], None, mode, result["stats"])
             
-        commentary = commentary_engine.generate(result, mode=mode, voice=voice)
+        if commentary_text:
+            commentary = {
+                "commentary": commentary_text,
+                "event_type": result["state"],
+                "context_tags": result["context_tags"],
+                "momentum": "rising" if result["state"] in ("Crash", "Extreme Near Miss", "Clutch Survival", "High Combo") else "calm",
+                "mode": mode,
+                "pool_used": "ActionNarrator",
+                "voice": voice or commentary_engine.voices.get(mode, "Jasper"),
+                "excitement": action_narrator.state_excitement.get(result["state"], "Excited")
+            }
+        else:
+            if not result["should_speak"]:
+                return jsonify({"skip": True})
+            commentary = commentary_engine.generate(result, mode=mode, voice=voice)
+            
         # Add narrative state and stats for debugging / rendering
         commentary["narrative_state"] = result["state"]
         commentary["stats"] = result["stats"]

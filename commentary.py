@@ -17,219 +17,50 @@ class CommentaryEngine:
                     "Green light! We are underway on the RoadCaster highway!",
                     "And they're off! Let's see if this driver has what it takes!",
                     "Engine roaring, tires biting the asphalt, the journey begins!",
-                    "The lights are green and we are live from the fastest highway on earth!",
-                    "A clean start! Time to see if they can build some real momentum!",
-                    "And the driver starts the run! The crowd is electric!"
+                    "The lights are green and we are live from the fastest highway on earth!"
                 ],
                 "Crash": [
                     "OH NO! A COLLISION! THE CAR IS IN RUINS! GAME OVER!",
                     "DEVASTATING COLLISION! Absolute catastrophe on the highway!",
                     "SMASH! The physics engine wins this round! A dramatic end to the run!",
-                    "OH! A catastrophic pile-up! That is the end of the broadcast!",
-                    "AND HE'S OUT! HE HITS THE VEHICLE AT SPEED! SPECTACULAR DESTRUCTION!",
-                    "WHAT A SMASH! The car is absolutely pulverized! The run is over!",
-                    "CRASHED! Screeching tires, flying debris, and the dream ends in steel!",
-                    "ABSOLUTE CARNAGE! The vehicle is wrecked! A devastating crash!"
+                    "AND HE'S OUT! HE HITS THE VEHICLE AT SPEED! SPECTACULAR DESTRUCTION!"
                 ],
                 "Extreme Near Miss": [
                     "GOOD HEAVENS! THAT WAS CENTIMETERS FROM AN ABSOLUTE DISASTER!",
                     "OH! THEY TRADED PAINT! Absolute heart-in-mouth moment!",
                     "INCHES FROM DISASTER! That gap barely existed and they STILL found a way through!",
-                    "HOLY MOLY! How did they dodge that?! Absolute nerves of steel!",
-                    "UNBELIEVABLE REFLEXES! He squeezed past with only a millimeter to spare!",
-                    "THAT IS BEYOND BELIEF! Dodging that car at speed was absolute wizardry!",
-                    "SPARKS ARE FLYING! Squeezing the boundaries of physics on that pass!",
-                    "THAT WAS INCHES FROM A CATASTROPHIC COLLISION! What a dodge!"
+                    "HOLY MOLY! How did they dodge that?! Absolute nerves of steel!"
                 ],
-                "Clutch Survival": [
-                    "HE'S DEFYING GRAVITY! THREE NEAR MISSES IN A ROW! HOW IS HE ALIVE?!",
-                    "OH MY WORD! THEY ARE TAKING BIGGER AND BIGGER RISKS OUT THERE!",
-                    "UNBELIEVABLE EVASIONS! A peak combo of {combo}! The crowd is going wild!",
-                    "ABSOLUTE FLOW STATE! {combo} consecutive close shaves! My heart is pounding!",
-                    "CLUTCH ESCAPE! Evasions left and right under extreme pressure!",
-                    "HOW DID HE SURVIVE THAT PACK?! Absolute clutch survival at its best!",
-                    "RISKING IT ALL! Peak combo of {combo}! They are living on a knife-edge!",
-                    "UNSTOPPABLE FLOW! Slicing through danger like a shadow!"
+                "Recovery Phase": [
+                    "WHAT A SAVE! Composure restored after a near-disaster!",
+                    "DISASTER AVERTED! Composure regained and control re-established!",
+                    "REGAINED CONTROL! The driver resets their focus and stabilizes!"
                 ],
-                "Panic Driving": [
-                    "THE DRIVER IS TRAPPED! DENSE TRAFFIC AND THE PACE IS SLOWING DOWN!",
-                    "HE'S SWERVING ERRATICALLY! The pressure is clearly getting to them!",
-                    "PANIC DRIVING IN THE SLOW LANE! Trying to find a way out of this congestion!",
-                    "TOO DENSE! The driver is swerving, trying to avoid being boxed in!",
-                    "THE GAP IS CLOSING! Congested traffic is forcing erratic maneuvers!",
-                    "RISKY SLOW MOVES! They're struggling to find clean air in this density!"
-                ],
-                "Traffic Chaos": [
-                    "THE ROAD IS TURNING INTO COMPLETE CHAOS!",
-                    "TRAFFIC IS CONGESTING BUT THE SPEED IS NOT DROPPING! THIS IS MADNESS!",
-                    "GOOD HEAVENS! THE HIGHWAY IS IN COMPLETE CHAOS AND THE DRIVER IS TEARING IT TO PIECES!",
-                    "Cars everywhere, engines screaming, the driver is carving them up!",
-                    "ABSOLUTE CHAOS OUT THERE! Redlining the engine in heavy traffic!",
-                    "THIS IS MADNESS! Cars to the left, cars to the right, absolute traffic congestion!",
-                    "THE ROAD IS A WAR ZONE! But the driver refuses to lift the accelerator!",
-                    "CONGESTION AT SPEED! Threading through high-density traffic like a madman!"
-                ],
-                "High Risk Driving": [
-                    "THAT WAS INCHES FROM DISASTER AT {speed} KM/H!",
-                    "THEY ARE PLAYING WITH FIRE AT THESE SPEEDS! Absolutely wild!",
-                    "Squeezing through gaps at {speed} km/h! Living on the edge!",
-                    "Risk level: MAXIMUM! They are dancing with the guardrails!",
-                    "BLISTERING SPEED AND NEAR MISSES! A recipe for adrenaline!",
-                    "HE IS LIVING DANGEROUSLY! Slicing past traffic at {speed} km/h!",
-                    "NO ROOM FOR ERROR! That near miss at high speed was absolute insanity!",
-                    "ONE MISTAKE AND IT'S OVER! Fearless driving at {speed} km/h!"
-                ],
-                "High Combo": [
-                    "TEN CLEAN EVASIONS IN A ROW! ABSOLUTELY FLYING!",
-                    "THE MOMENTUM IS UNSTOPPABLE! A massive combo of {combo}!",
-                    "DANCING THROUGH TRAFFIC! A combo of {combo} close calls!",
-                    "UNTOUCHABLE FLOW! Slicing past {combo} vehicles without a scratch!",
-                    "THE COMBO COUNTER IS ON FIRE! Peak combo of {combo} reached!",
-                    "ABSOLUTE MAGIC! Threading {combo} near misses in a row!"
-                ],
-                "Untouchable": [
-                    "TRAFFIC CANNOT SEEM TO SLOW THEM DOWN! THEY ARE UNTOUCHABLE!",
-                    "THEY HAVE AN ANSWER FOR EVERYTHING THE ROAD THROWS AT THEM!",
-                    "THIS RUN IS REACHING ANOTHER LEVEL! Absolutely untouchable driving!",
-                    "THE SCENERY IS A BLUR AND THE VEHICLES ARE STANDING STILL!",
-                    "THEY ARE PLAYING A DIFFERENT GAME! Absolutely untouchable on this highway!",
-                    "NO ONE CAN TOUCH THEM! car is carving through traffic with absolute ease!"
-                ],
-                "Dominant Run": [
-                    "AN ABSOLUTELY DOMINANT RUN! Carving through the slower pack at {speed} km/h!",
-                    "THEY ARE DOMINATING THE ASPHALT! {overtakes} passes in the last 15 seconds!",
-                    "A SHOW OF ABSOLUTE DOMINANCE! Just leaving everyone in the dust!",
-                    "THE DRIVER IS ON A Tear! Dominating every lane of this highway!",
-                    "CHAMPIONSHIP PERFORMANCE! Total dominance of speed and control!",
-                    "THEY ARE IN A LEAGUE OF THEIR OWN! Slicing through traffic like a laser!"
-                ],
-                "Highway Wizard": [
-                    "A HIGHWAY WIZARD! Weaving and passing like a professional slalom driver!",
-                    "ABSOLUTE WIZARD IN ACTION! Left, right, pass! Spellbinding car control!",
-                    "THEY ARE CASTING A SPELL ON the ROAD! Beautiful weaving and overtakes!",
-                    "MAGIC ON THE ASPHALT! Weaving through lanes and passing vehicles effortlessly!",
-                    "WIZARD CLASS DRIVING! That slalom pass sequence was breathtaking!",
-                    "HE'S PLAYING WITH THE TRAFFIC! Left, right, pass! Absolute highway wizard!"
-                ],
-                "Traffic Surgeon": [
-                    "THE DRIVER IS THREADING THROUGH TRAFFIC BEAUTIFULLY!",
-                    "THEY'RE FINDING GAPS THAT BARELY EXIST! Clinical traffic surgery!",
-                    "THIS IS PRECISION DRIVING AT ITS FINEST! Slicing cleanly through lanes!",
-                    "SURGICAL PRECISION! Cutting through the field without a single mistake!",
-                    "THE GAPS ARE MINISCULE BUT THE SURGEON FINDS A WAY!",
-                    "CLINICAL WORK! Lane changes and passes executed with absolute precision!"
-                ],
-                "Precision Driving": [
-                    "A MASTERCLASS IN PRECISION DRIVING! Clean passes and perfect lines!",
-                    "NO WASTED MOTION! Precision lane changes and clean driving!",
-                    "MAKING IT LOOK EFFORTLESS! Pure precision on this stretch!",
-                    "CLINICAL AND CLEAN! Every weave and pass executed beautifully!",
-                    "THE PAINT IS NOT EVEN SCRATCHED! That is precision driving at its best!",
-                    "PRACTICE MAKES PERFECT! A display of pure driving precision!"
-                ],
-                "Flow State": [
-                    "EVERYTHING IS CLICKING RIGHT NOW! The driver is in flow state!",
-                    "THE DRIVER IS OPERATING ON INSTINCT! It all looks effortless!",
-                    "IT ALL LOOKS EFFORTLESS! Absolute flow state on the RoadCaster highway!",
-                    "IN THE ZONE! Every decision, every swerve, completely locked in!",
-                    "PURE INSTINCT! The driver and the machine are working as one!",
-                    "THEY ARE FLOATING ON THE ASPHALT! Everything is clicking beautifully!"
+                "Total Control": [
+                    "THIS IS A DEMONSTRATION OF TOTAL CONTROL! Absolutely flawless driving!",
+                    "THE DRIVER IS DICTATING THE TERMS! Total control of the vehicle!",
+                    "Flawless execution! They have complete command of this highway!",
+                    "No mistakes, no panic. Just absolute, total control at {speed} km/h!"
                 ],
                 "Masterclass": [
                     "THIS IS BECOMING A MASTERCLASS IN HIGHWAY CONTROL!",
                     "EVERY DECISION IS THE RIGHT ONE! Locked in masterclass driving!",
                     "THE DRIVER LOOKS COMPLETELY LOCKED IN! A master at work!",
-                    "A CLINICAL TUTORIAL ON CONTROL! Not a single mistake for 25 seconds!",
-                    "THE SCENERY FAINTS BEHIND! Complete mastery of the highway!",
-                    "UNPRECEDENTED FOCUS! Writing the manual on high-speed car control!"
+                    "A CLINICAL TUTORIAL ON CONTROL! Not a single mistake for 25 seconds!"
                 ],
-                "Controlled Aggression": [
-                    "CONTROLLED AGGRESSION! Slicing through traffic with confidence!",
-                    "AGAINST THE FIELD! Aggressive passes but keeping it completely clean!",
-                    "THEY'RE PUSHING THE VEHICLE! Controlled aggression at its best!",
-                    "BOLD BUT CLINICAL! {overtakes} passes without a single near miss!",
-                    "THE DRIVER IS DRIVING ON AN ABSOLUTE tear but keeping it clean!",
-                    "AGGRESSIVE PASSES BUT TOTAL CONTROL! Leaving traffic behind!"
-                ],
-                "Record Pace": [
-                    "RECORD-BREAKING VELOCITY! Flying at {speed} km/h!",
-                    "THE SPEEDOMETER IS SCREAMING! Record pace on this stretch!",
-                    "SCORES LIKE A ROCKET SCREECHING IN THE SKY! Record speed!",
-                    "BLISTERING SPEED! The scenery is just a blur at {speed} km/h!"
-                ],
-                "Building Momentum": [
-                    "THE CONFIDENCE IS GROWING! The pace keeps increasing!",
-                    "THE PACE KEEPS INCREASING! Building something special here!",
-                    "THEY ARE BUILDING MOMENTUM! Ramping up the velocity and passing cars!",
-                    "MOMENTUM IS ON THE RISE! The hum of the engine is intensifying!"
-                ],
-                "Traffic Weaving": [
-                    "THEY'RE WEAVING BEAUTIFULLY THROUGH TRAFFIC!",
-                    "WEAVING THROUGH THE FIELD! Left, right, left slaloms!",
-                    "A SPECTACULAR SLALOM SEQUENCE! Agility of the car is outstanding!",
-                    "WEAVING LEFT, WEAVING RIGHT! Car control is absolutely spellbinding!"
-                ],
-                "Perfect Rhythm": [
-                    "IN PERFECT RHYTHM! Every lane shift and pass working beautifully!",
-                    "THE DRIVER HAS FOUND THE RHYTHM! Hum of the tires, zoom of the passes!",
-                    "A PERFECT CONCERT OF PASSING AND WEAVING! Completely in rhythm!",
-                    "RHYTHM AND SPEED WORKING IN HARMONY! Effortless progress!"
-                ],
-                "Recovery Phase": [
-                    "WHAT A SAVE! Composure restored after a near-disaster!",
-                    "DISASTER AVERTED! Composure regained and control re-established!",
-                    "EXCELLENT COMPOUND REFLEXES! What a save to get out of that jam!",
-                    "REGAINED CONTROL! The driver resets their focus and stabilizes!"
+                "Flow State": [
+                    "EVERYTHING IS CLICKING RIGHT NOW! The driver is in flow state!",
+                    "THE DRIVER IS OPERATING ON INSTINCT! It all looks effortless!",
+                    "IN THE ZONE! Every decision, every swerve, completely locked in!"
                 ],
                 "High Score": [
                     "NEW HIGH SCORE! The driver is rewriting the history books!",
                     "HISTORY IS MADE! A new benchmark has been set!",
                     "UNPRECEDENTED HEIGHTS! They've just beaten the record!"
                 ],
-                "Elite Reactions": [
-                    "WHAT SPECTACULAR REACTIONS! Squeezing through with lightning-fast speed!",
-                    "THE REFLEXES ON THIS DRIVER! Absolutely cat-like reactions!",
-                    "INHERENT REFLEXES! He reacted in a fraction of a second!",
-                    "AN EXHIBITION OF INSTINCT! Superb reaction time from the driver!",
-                    "ELITE LEVEL REFLEXES! That was pure muscle memory in action!",
-                    "OH! DANCING ON A RAZOR BLADE! A combo of {combo} and reflexes from another planet!",
-                    "INCREDIBLE! HE DODGES AGAIN! The synapses are firing at warp speed!"
-                ],
-                "Total Control": [
-                    "THIS IS A DEMONSTRATION OF TOTAL CONTROL! Absolutely flawless driving!",
-                    "THE DRIVER IS DICTATING THE TERMS! Total control of the vehicle!",
-                    "Flawless execution! They have complete command of this highway!",
-                    "No mistakes, no panic. Just absolute, total control at {speed} km/h!",
-                    "A MASTERCLASS IN MOTION! Total control for {clean_driving_seconds} seconds!",
-                    "THE CAR IS AN EXTENSION OF HIS BODY! Spellbinding highway control!"
-                ],
                 "Building Momentum->Traffic Surgeon": [
                     "The confidence is growing now! Threading through lanes like a pro!",
                     "Excellent transition! Building momentum has led to clinical traffic surgery!"
-                ],
-                "Traffic Surgeon->Highway Wizard": [
-                    "They are finding gaps that barely exist! Total highway wizardry!",
-                    "Surgical precision has turned into complete wizardry on the asphalt!"
-                ],
-                "Highway Wizard->Clutch Survival": [
-                    "They are taking bigger and bigger risks! Inches from disaster!",
-                    "Agility turns to extreme danger! They are walking a tightrope now!"
-                ],
-                "Clutch Survival->Recovery Phase": [
-                    "What a save! The run survives!",
-                    "HE SURVIVED! disaster averted, the driver resets their focus!"
-                ],
-                "*->Recovery Phase": [
-                    "Crisis resolved! Composure regained after a highly intense sequence!",
-                    "What a spectacular recovery to stay alive! Splendid driving!"
-                ],
-                "*->Total Control": [
-                    "Total control established! After {state_duration} seconds of volatility, they have completely stabilized!",
-                    "A return to complete control! The driver is looking absolutely locked in!"
-                ],
-                "*->Clutch Survival": [
-                    "Danger levels spiking! They are dodging multiple close calls in a row!",
-                    "High pressure evasion! How on earth are they squeezing through?!"
                 ]
             },
             "narrator": {
@@ -248,228 +79,121 @@ class CommentaryEngine:
                     "A close encounter with fate, resolved in milliseconds.",
                     "The gap was narrow. The survival, narrower."
                 ],
-                "Clutch Survival": [
-                    "Defying the odds, one close call at a time.",
-                    "A streak of {combo}. Evasion has become second nature.",
-                    "A testament to absolute focus."
-                ],
-                "Panic Driving": [
-                    "The road closes in. Erratic movements in congested space.",
-                    "Loss of space, loss of speed, the driver struggles."
-                ],
-                "Traffic Chaos": [
-                    "A storm of steel and exhaust. A test of pure instinct.",
-                    "Surrounded by moving walls. Every direction is a hazard."
-                ],
-                "High Risk Driving": [
-                    "At this speed, every decision is life or death.",
-                    "Brushing past disaster at {speed} km/h.",
-                    "The speed dials up, and with it, the risk."
-                ],
-                "High Combo": [
-                    "Evasion has become second nature. {combo} close calls.",
-                    "A sequence of escapes, woven into the run."
-                ],
-                "Untouchable": [
-                    "They move through traffic like a ghost.",
-                    "Unmatched speed. Unbroken focus. The road belongs to them."
-                ],
-                "Dominant Run": [
-                    "A display of speed. Just leaving everyone behind.",
-                    "They dominate every lane of this highway."
-                ],
-                "Highway Wizard": [
-                    "Slalom sequences. A kinetic spell cast on the road.",
-                    "Agility and speed working in unison."
-                ],
-                "Traffic Surgeon": [
-                    "Clinical precision. Cutting through the field.",
-                    "Finding gaps that barely exist."
-                ],
-                "Precision Driving": [
-                    "A clean line. A silent masterclass in precision.",
-                    "Total control. The car is an extension of the mind."
-                ],
-                "Flow State": [
-                    "Everything is clicking right now.",
-                    "Operating on instinct. Effortless flow."
-                ],
-                "Masterclass": [
-                    "This has been a masterclass in control.",
-                    "Every decision is the right one."
-                ],
-                "Controlled Aggression": [
-                    "Aggressive passes, but keeping it clean.",
-                    "Bold swerves, precise execution."
-                ],
-                "Record Pace": [
-                    "Blistering speed at {speed} km/h.",
-                    "Speeding down the highway, pushing limits."
-                ],
-                "Building Momentum": [
-                    "The pace quickens. Momentum builds.",
-                    "Confidence grows with every stretch."
-                ],
-                "Traffic Weaving": [
-                    "Rapid lane shifts. Weaving through the pack."
-                ],
-                "Perfect Rhythm": [
-                    "Hum of the engine, zoom of the passes. Perfect rhythm."
-                ],
                 "Recovery Phase": [
-                    "A critical escape. The heartbeat slows.",
-                    "Order returns in the aftermath of chaos."
-                ],
-                "High Score": [
-                    "A new record. Pushed past the known limits."
-                ],
-                "Elite Reactions": [
-                    "Reflexes tested, and proven. A fraction of a second separates them from ruin.",
-                    "No thinking. Only pure reaction.",
-                    "The synapses fire instantly. A clean escape.",
-                    "A combo of {combo}. Pure instinct overriding fear."
+                    "Composure returns, if only temporarily.",
+                    "Control is re-established. The pulse begins to slow."
                 ],
                 "Total Control": [
-                    "Flawless execution. They have complete command of this machine.",
-                    "A silent exhibition of total control.",
-                    "No mistakes, no doubts. The driver is in complete command.",
-                    "For {clean_driving_seconds} seconds, the highway has submitted to their will."
+                    "A serene exhibition of control.",
+                    "Flawless and silent. The driver is completely synchronized with the highway.",
+                    "No mistakes. No hesitation."
+                ],
+                "Masterclass": [
+                    "This is a masterclass in motion.",
+                    "Not a single misstep for twenty-five seconds. Remarkable.",
+                    "An exhibition of pure, uninterrupted focus."
+                ],
+                "Flow State": [
+                    "Instinct has taken over. Thought is no longer required.",
+                    "Operating in the zone. Every action is second nature."
+                ],
+                "High Score": [
+                    "A new record. The boundaries have been pushed further.",
+                    "A milestone has been reached."
                 ],
                 "Building Momentum->Traffic Surgeon": [
-                    "Confidence rises. The driver begins to slice through traffic with clinical focus."
+                    "Momentum translates into surgical precision.",
+                    "The velocity is rising, and the lanes are being cut cleanly."
                 ],
                 "Traffic Surgeon->Highway Wizard": [
-                    "They find gaps that barely exist. Surgery yields to wizardry."
+                    "Surgical turns elevate into highway wizardry.",
+                    "Precision gives way to absolute art on the road."
                 ],
                 "Highway Wizard->Clutch Survival": [
-                    "The risks escalate. Every move is a flirtation with ruin."
+                    "The line between magic and disaster grows thin.",
+                    "Danger levels are rising quickly."
                 ],
                 "Clutch Survival->Recovery Phase": [
-                    "Composure restored. The heartbeat slows in the wake of danger."
+                    "The danger passes. Control is restored.",
+                    "Composure is regained."
                 ],
                 "*->Recovery Phase": [
-                    "Order returns. The crisis has passed."
+                    "The situation stabilizes.",
+                    "The run is brought back under control."
                 ],
                 "*->Total Control": [
-                    "Complete stabilization. The vehicle is once again an extension of their mind."
+                    "Complete calm returns to the driver.",
+                    "A return to total, unwavering control."
+                ],
+                "*->Clutch Survival": [
+                    "The pressure mounts. The margins are now minimal.",
+                    "The driver enters a state of critical evasion."
                 ]
             },
             "savage": {
                 "game_start": [
-                    "Oh good, another driver who thinks they're in a movie.",
-                    "Let's see how long it takes to turn this car into scrap metal.",
-                    "We are live. Place your bets on when the crash happens."
+                    "Oh look, someone else trying to drive fast. Let's see how long this lasts.",
+                    "Starting the engine. Hope you have insurance.",
+                    "Here we go again. Another generic run."
                 ],
                 "Crash": [
-                    "Well, physics wins again. Who saw that coming? Everyone.",
-                    "And that, ladies and gentlemen, is why we have seatbelts.",
-                    "Beautifully done. The car is now a modern art installation."
+                    "And there it is. Wrecked. Absolutely predictable.",
+                    "Physics wins again. Back to the lobby for you.",
+                    "Well, at least the crash was slightly entertaining."
                 ],
                 "Extreme Near Miss": [
-                    "Nice dodge. Don't get cocky, it was 90% luck.",
-                    "That was close enough to smell the other driver's cologne."
-                ],
-                "Clutch Survival": [
-                    "A combo of {combo}. You're really stretching your guardian angel's patience.",
-                    "Double digit combo. The collision is going to be hilarious when it happens."
-                ],
-                "Panic Driving": [
-                    "Are we driving or trying to test the airbag system?",
-                    "Trapped in traffic and slowing down. Hilarious."
-                ],
-                "Traffic Chaos": [
-                    "Look at this mess. You're basically playing pinball with real cars.",
-                    "Absolute disaster area. Traffic chaos."
-                ],
-                "High Risk Driving": [
-                    "Doing {speed} km/h? Your parents must be so proud.",
-                    "If you wanted to die, there are less expensive ways."
-                ],
-                "High Combo": [
-                    "Combo of {combo}? Your guardian angel deserves a raise.",
-                    "You dodged {combo} cars. Don't get cocky."
-                ],
-                "Untouchable": [
-                    "Traffic can't slow you down? Let's wait for a truck.",
-                    "Untouchable? I'm almost disappointed."
-                ],
-                "Dominant Run": [
-                    "Dominating slower pack. Groundbreaking.",
-                    "Wow, you overtook traffic. Incredible."
-                ],
-                "Highway Wizard": [
-                    "Slalom wizard. Calm down, Vin Diesel.",
-                    "Weaving like a drunk driver at a slalom event."
-                ],
-                "Traffic Surgeon": [
-                    "Clinical surgery. Cute.",
-                    "Threading through gaps. Don't scratch the paint."
-                ],
-                "Precision Driving": [
-                    "Precision driving. Boring! Bring back the crashes!",
-                    "Very clean. Very slow. Excellent."
-                ],
-                "Flow State": [
-                    "Everything is clicking. Let's see how fast you mess it up.",
-                    "Operating on instinct? That's a dangerous idea."
-                ],
-                "Masterclass": [
-                    "Masterclass control. Boring!",
-                    "No mistakes. I'm falling asleep here."
-                ],
-                "Controlled Aggression": [
-                    "Aggressive passes. Trying to look cool, huh?"
-                ],
-                "Record Pace": [
-                    "At {speed} km/h, your insurance premium just reached escape velocity.",
-                    "Trying to write your own obituary?"
-                ],
-                "Building Momentum": [
-                    "Oh look, we're actually making progress. Don't ruin it.",
-                    "Wow, you overtook a car. Give yourself a medal."
-                ],
-                "Traffic Weaving": [
-                    "Weaving through traffic. Slalom champion."
-                ],
-                "Perfect Rhythm": [
-                    "Rhythm is good. Hope you don't hit a wall."
+                    "Missed by a hair. Your luck won't last forever.",
+                    "That was stupidly close. Try looking at the screen.",
+                    "Nearly ended it all right there. Slow down."
                 ],
                 "Recovery Phase": [
-                    "Wow, you actually saved it. I'm almost disappointed.",
-                    "Disaster averted, unfortunately for the viewers."
-                ],
-                "High Score": [
-                    "New high score. Great, now you'll never stop playing."
-                ],
-                "Elite Reactions": [
-                    "Your reflexes aren't terrible today. I'm almost impressed.",
-                    "Flashed some decent reactions there. Don't let it go to your head.",
-                    "Look at those twitchy fingers. Pure panic, but it worked.",
-                    "Wow, you actually dodged that. A miracle, really."
+                    "Oh, you survived? Color me surprised.",
+                    "Congratulations on not dying. Yet."
                 ],
                 "Total Control": [
-                    "Total control? Sure, it's easy when you're playing it this safe.",
-                    "Very clean, very controlled. Also very boring.",
-                    "Still in control. I'm still waiting for the crash.",
-                    "You've survived {clean_driving_seconds} seconds without hitting anything. Impressive for a toddler."
+                    "Boringly safe. Are you going to speed up or what?",
+                    "Driving like a grandmother. Flawless, but slow.",
+                    "Not hitting anything. How thrilling."
+                ],
+                "Masterclass": [
+                    "Twenty-five seconds without hitting anything. Want a medal?",
+                    "A masterclass in safety. Wake me up when something happens."
+                ],
+                "Flow State": [
+                    "Locked in? Or just staring blankly?",
+                    "You think you're in the zone. You're just lucky."
+                ],
+                "High Score": [
+                    "A new high score. Still won't get you a real racing license.",
+                    "You beat your own low standard. Great job."
                 ],
                 "Building Momentum->Traffic Surgeon": [
-                    "Confidence is growing. Great, more fast swerves to worry about."
+                    "Going faster just to look fancy. Typical.",
+                    "Surgical weaving. Sure, whatever helps you sleep."
                 ],
                 "Traffic Surgeon->Highway Wizard": [
-                    "Finding gaps that barely exist. Let's see how long this luck holds out."
+                    "Now you're a 'wizard'. Hope your magic wand doesn't hit a bus.",
+                    "Wizardry? Looks more like reckless driving to me."
                 ],
                 "Highway Wizard->Clutch Survival": [
-                    "Taking bigger and bigger risks. I'll get my popcorn ready."
+                    "From magic to panic. That was fast.",
+                    "Walking a tightrope. Hope you fall."
                 ],
                 "Clutch Survival->Recovery Phase": [
-                    "You actually saved it. Mildly disappointing for the ratings."
+                    "Saved it. Unfortunately.",
+                    "The run survives. Yay."
                 ],
                 "*->Recovery Phase": [
-                    "Somehow, you didn't crash. Good job staying lucky."
+                    "Somehow, you didn't crash. Good job staying lucky.",
+                    "Back to safety. Yawns all around."
                 ],
                 "*->Total Control": [
-                    "Back to driving safely. Yawns all around."
+                    "Back to driving safely. Wake me when you crash.",
+                    "Stabilized. Boring."
+                ],
+                "*->Clutch Survival": [
+                    "Here comes the panic. Let's see if you choke.",
+                    "Surviving by the skin of your teeth. Pitiful."
                 ]
             }
         }

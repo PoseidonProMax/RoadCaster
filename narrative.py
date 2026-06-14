@@ -28,7 +28,7 @@ class NarrativeEngine:
         self.previous_traffic_level = "low"
         self.clean_period_triggered = False
 
-    def evaluate(self, new_events: List[Dict[str, Any]], current_time: float, current_speed: float, current_combo: int, critical: bool = False) -> Dict[str, Any]:
+    def evaluate(self, new_events: List[Dict[str, Any]], current_time: float, current_speed: float, current_combo: int, critical: bool = False, actions: List[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Processes new events, updates history, prunes old events,
         determines the current narrative state and whether to generate commentary.
@@ -247,6 +247,8 @@ class NarrativeEngine:
             "should_speak": should_speak,
             "bypass_cooldown": critical or state in ("Crash", "Extreme Near Miss", "High Score"),
             "stats": {
+                "actions_per_second": round(len(actions) / 3.5, 2) if actions else 0.0,
+                "action_count": len(actions) if actions else 0,
                 "overtakes_in_window": overtakes,
                 "near_misses_in_window": near_misses,
                 "lane_changes_in_window": lane_changes,

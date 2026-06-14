@@ -101,6 +101,11 @@ let particles = [];
 const processedNearMisses = new Set();
 const processedOvertakes = new Set();
 
+// FIFA-style action-oriented play-by-play variables
+let actionQueue = [];
+let speedHistory = [];
+let lastSpeedSurgeTime = 0;
+
 // Weaving tracking
 let laneChangeCount = 0;
 let laneChangeTimer = 0;
@@ -1129,7 +1134,14 @@ function handleKeyDown(e) {
             changeLane(1);
         }
     } else if (e.key === ' ' || e.key === 'ArrowUp') {
-        keys.boost = true;
+        if (!keys.boost) {
+            keys.boost = true;
+            actionQueue.push({
+                event: 'boost_start',
+                speed: Math.round(gameSpeed * 1.8),
+                timestamp: elapsedPlayTime
+            });
+        }
     } else if (e.key === 'Escape') {
         // Pause/unpause toggle can go here if needed
     }
@@ -1141,7 +1153,14 @@ function handleKeyUp(e) {
     } else if (e.key === 'd' || e.key === 'ArrowRight') {
         keys.right = false;
     } else if (e.key === ' ' || e.key === 'ArrowUp') {
-        keys.boost = false;
+        if (keys.boost) {
+            keys.boost = false;
+            actionQueue.push({
+                event: 'boost_end',
+                speed: Math.round(gameSpeed * 1.8),
+                timestamp: elapsedPlayTime
+            });
+        }
     }
 }
 
@@ -1155,11 +1174,26 @@ function changeLane(direction) {
         isLaneTransitioning = true;
         laneChangeTime = 0.0;
         
+        // Log lane change action
+        const actionEvent = direction < 0 ? 'swerve_left' : 'swerve_right';
+        actionQueue.push({
+            event: actionEvent,
+            direction: direction < 0 ? 'left' : 'right',
+            from_lane: prevLane,
+            to_lane: currentLane,
+            timestamp: elapsedPlayTime
+        });
+
         // Track weaves
         laneChangeCount++;
         laneChangeTimer = 4.0; // Weave window
         if (laneChangeCount >= 3) {
             triggerGameplayEvent('traffic_weave', 'car');
+            actionQueue.push({
+                event: 'rapid_weave',
+                count: laneChangeCount,
+                timestamp: elapsedPlayTime
+            });
             laneChangeCount = 0;
         }
     }
@@ -1187,6 +1221,24 @@ function update(dt) {
         // Lerp speed to make acceleration feel smooth
         gameSpeed = THREE.MathUtils.lerp(gameSpeed, targetSpeed, 0.08);
         
+        // Track speed history for speed surges (increases by 30+ km/h in 2 seconds)
+        const currentSpeedKmh = gameSpeed * 1.8;
+        speedHistory.push({ time: elapsedPlayTime, speed: currentSpeedKmh });
+        speedHistory = speedHistory.filter(sh => elapsedPlayTime - sh.time <= 2.0);
+        if (speedHistory.length > 0) {
+            const oldSpeed = speedHistory[0].speed;
+            const speedDiff = currentSpeedKmh - oldSpeed;
+            if (speedDiff >= 30.0 && (elapsedPlayTime - lastSpeedSurgeTime > 3.0)) {
+                lastSpeedSurgeTime = elapsedPlayTime;
+                actionQueue.push({
+                    event: 'speed_surge',
+                    from_speed: Math.round(oldSpeed),
+                    to_speed: Math.round(currentSpeedKmh),
+                    timestamp: elapsedPlayTime
+                });
+            }
+        }
+        
         // Score: Base points for distance traveled
         score += gameSpeed * dt * 0.2;
         distanceSurvived += gameSpeed * dt * 0.1;
@@ -1200,7 +1252,6 @@ function update(dt) {
         // Update DOM elements
         dom.hudScore.textContent = Math.round(score).toLocaleString('en-US', { minimumIntegerDigits: 6, useGrouping: false });
         
-        const currentSpeedKmh = gameSpeed * 1.8;
         dom.hudSpeed.textContent = Math.round(currentSpeedKmh); // convert to km/h scale
         dom.hudDistance.textContent = Math.round(distanceSurvived);
         
@@ -1504,6 +1555,48 @@ function triggerNearMiss(tv) {
     const xDist = Math.abs(playerVehicle.position.x - tv.position.x);
     const isExtreme = xDist < 1.35; // Sideways overlap proximity threshold
     
+    // Determine the type of dodge action
+    let isSqueeze = false;
+    for (let tv2 of trafficVehicles) {
+        if (tv2.userData.id !== tv.userData.id) {
+            const zDist2 = Math.abs(playerVehicle.position.z - tv2.position.z);
+            const xDist2 = Math.abs(playerVehicle.position.x - tv2.position.x);
+            if (zDist2 < 4.0 && xDist2 < 4.0) {
+                const playerX = playerVehicle.position.x;
+                if ((tv.position.x - playerX) * (tv2.position.x - playerX) < 0) {
+                    isSqueeze = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (isSqueeze) {
+        actionQueue.push({
+            event: 'squeeze_through',
+            vehicle_type: tv.userData.type,
+            gap: parseFloat(xDist.toFixed(2)),
+            timestamp: elapsedPlayTime
+        });
+    } else {
+        const side = playerVehicle.position.x < tv.position.x ? 'left' : 'right';
+        actionQueue.push({
+            event: `dodge_${side}`,
+            vehicle_type: tv.userData.type,
+            gap_distance: parseFloat(xDist.toFixed(2)),
+            timestamp: elapsedPlayTime
+        });
+    }
+
+    if (isExtreme) {
+        actionQueue.push({
+            event: 'close_call',
+            vehicle_type: tv.userData.type,
+            distance: parseFloat(xDist.toFixed(2)),
+            timestamp: elapsedPlayTime
+        });
+    }
+
     // Check milestones
     if (comboCount % 5 === 0) {
         triggerGameplayEvent('combo_milestone', tv.userData.type);
@@ -1534,6 +1627,14 @@ function triggerOvertake(tv) {
     // Track rapid passes
     const timeNow = performance.now();
     
+    // Track action
+    const side = playerVehicle.position.x < tv.position.x ? 'left' : 'right';
+    actionQueue.push({
+        event: `overtake_${side}`,
+        vehicle_type: tv.userData.type,
+        timestamp: elapsedPlayTime
+    });
+
     // Check if we did a multi overtake (overtaking multiple vehicles within 2.0s)
     if (!triggerOvertake.recentOvertakes) triggerOvertake.recentOvertakes = [];
     triggerOvertake.recentOvertakes.push(timeNow);
@@ -1685,11 +1786,13 @@ processNarrativeTick.lastEmptyTickTime = 0;
 async function sendNarrativeRequest(batch, isCritical = false) {
     const payload = {
         events: batch,
+        actions: [...actionQueue],
         current_time: elapsedPlayTime,
         current_speed: Math.round(gameSpeed * 1.8),
         current_combo: comboCount,
         critical: isCritical
     };
+    actionQueue = [];
     
     const displayEv = batch.length > 0 ? batch[batch.length - 1] : {
         event: 'cruising',
@@ -1800,6 +1903,9 @@ async function playNarratorVoice(text, voice) {
     currentTtsRequestId++;
     const myRequestId = currentTtsRequestId;
     
+    // Set isSpeaking immediately to block new ticks while fetching/playing
+    isSpeaking = true;
+    
     if (serverTtsEnabled) {
         try {
             const response = await fetch('/api/tts', {
@@ -1810,8 +1916,11 @@ async function playNarratorVoice(text, voice) {
             
             if (myRequestId !== currentTtsRequestId) return;
             
-            if (response.status === 503) {
-                fallbackToWebSpeech("Server disabled TTS");
+            if (!response.ok) {
+                isSpeaking = false;
+                if (response.status === 503) {
+                    fallbackToWebSpeech("Server disabled TTS");
+                }
                 playBrowserTtsFallback(text, voice);
                 return;
             }
