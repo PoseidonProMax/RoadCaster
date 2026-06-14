@@ -32,12 +32,25 @@
                 <span class="stat-label">SCORE</span>
                 <span id="hud-score" class="stat-value mono">000,000</span>
             </div>
-            <div class="stat-group">
-                <span class="stat-label">SPEED</span>
-                <span class="stat-value-container">
-                    <span id="hud-speed" class="stat-value mono">0</span>
-                    <span class="stat-unit">km/h</span>
-                </span>
+            <div class="stat-group-speedometer" style="margin: 10px 0;">
+                <span class="stat-label" style="text-align: center; display: block; width: 100%; margin-bottom: -5px;">SPEED</span>
+                <div class="speedometer-dial-container">
+                    <svg class="speedometer-svg" viewBox="0 0 120 120">
+                        <path class="speedometer-track" d="M 20 100 A 40 40 0 1 1 100 100" fill="none" stroke-width="6" stroke-linecap="round" />
+                        <path id="speedometer-progress" class="speedometer-progress" d="M 20 100 A 40 40 0 1 1 100 100" fill="none" stroke="url(#speed-gradient)" stroke-width="7" stroke-linecap="round" stroke-dasharray="190" stroke-dashoffset="190" />
+                        <defs>
+                            <linearGradient id="speed-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#00f3ff" />
+                                <stop offset="50%" stop-color="#ff00a0" />
+                                <stop offset="100%" stop-color="#ff0055" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div class="speedometer-text">
+                        <span id="hud-speed" class="stat-value mono">0</span>
+                        <span class="stat-unit">km/h</span>
+                    </div>
+                </div>
             </div>
             <div class="stat-group">
                 <span class="stat-label">DISTANCE</span>
@@ -94,6 +107,19 @@
                     <button class="mode-tab" data-mode="narrator">Dramatic</button>
                     <button class="mode-tab" data-mode="savage">Savage</button>
                 </div>
+            </div>
+            <div class="control-row">
+                <label for="voice-select" class="control-label">COMMENTATOR</label>
+                <select id="voice-select" class="voice-dropdown">
+                    <option value="Jasper" selected>Jasper (Default)</option>
+                    <option value="Bruno">Bruno (F1 Hype)</option>
+                    <option value="Leo">Leo (FIFA Caster)</option>
+                    <option value="Hugo">Hugo (Cinematic)</option>
+                    <option value="Bella">Bella (Presenter)</option>
+                    <option value="Luna">Luna (Mysterious)</option>
+                    <option value="Rosie">Rosie (Expressive)</option>
+                    <option value="Kiki">Kiki (Savage)</option>
+                </select>
             </div>
             <div class="control-row volume-container">
                 <span class="vol-icon">🔊</span>
@@ -190,6 +216,20 @@
                             <span class="mode-title">Savage Critic</span>
                             <span class="mode-desc">Witty, sarcastic jabs and backhanded compliments.</span>
                         </div>
+                    </div>
+                </div>
+                
+                <div class="setup-group" style="margin-top: 16px;">
+                    <h3>SELECT COMMENTATOR VOICE</h3>
+                    <div class="voice-select-container">
+                        <button class="voice-btn active" data-voice="Jasper">Jasper</button>
+                        <button class="voice-btn" data-voice="Bruno">Bruno (F1)</button>
+                        <button class="voice-btn" data-voice="Leo">Leo (FIFA)</button>
+                        <button class="voice-btn" data-voice="Hugo">Hugo</button>
+                        <button class="voice-btn" data-voice="Bella">Bella</button>
+                        <button class="voice-btn" data-voice="Luna">Luna</button>
+                        <button class="voice-btn" data-voice="Rosie">Rosie</button>
+                        <button class="voice-btn" data-voice="Kiki">Kiki</button>
                     </div>
                 </div>
                 

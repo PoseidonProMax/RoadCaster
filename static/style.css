@@ -181,7 +181,7 @@ body, html {
     bottom: 24px;
     left: 24px;
     right: 24px;
-    height: 120px;
+    height: 140px;
     z-index: 10;
     background: var(--bg-card);
     backdrop-filter: blur(16px);
@@ -838,4 +838,114 @@ body, html {
 
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.2);
+}
+
+/* Speedometer Dial styling */
+.speedometer-dial-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 10px auto;
+}
+
+.speedometer-svg {
+    width: 120px;
+    height: 120px;
+    transform: rotate(0deg);
+}
+
+.speedometer-track {
+    stroke: rgba(255, 255, 255, 0.08);
+}
+
+.speedometer-progress {
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.15s ease-out;
+}
+
+.speedometer-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 5px;
+}
+
+.speedometer-text .stat-value {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.speedometer-text .stat-unit {
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    color: var(--text-dim);
+}
+
+/* Commentator Voice Selector Styles */
+.voice-select-container {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.voice-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.voice-btn:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.voice-btn.active {
+    background: rgba(0, 240, 255, 0.08);
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
+}
+
+.voice-dropdown {
+    background: rgba(13, 13, 33, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    color: var(--text-main);
+    padding: 4px 8px;
+    font-size: 11px;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 150px;
+}
+
+.voice-dropdown:hover, .voice-dropdown:focus {
+    border-color: var(--accent-cyan);
+    background: rgba(13, 13, 33, 0.95);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+}
+
+.voice-dropdown option {
+    background: #0d0d21;
+    color: var(--text-main);
 }

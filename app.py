@@ -47,8 +47,9 @@ def get_commentary():
         narrative_engine.reset()
         
     mode = request.args.get("mode", "sports")
+    voice = request.args.get("voice", None)
     try:
-        commentary_data = commentary_engine.generate(data, mode=mode)
+        commentary_data = commentary_engine.generate(data, mode=mode, voice=voice)
         return jsonify(commentary_data)
     except Exception as e:
         logger.error(f"Error generating commentary: {e}", exc_info=True)
@@ -66,6 +67,7 @@ def get_narrative():
     current_time = data.get("current_time", 0.0)
     current_speed = data.get("current_speed", 0.0)
     current_combo = data.get("current_combo", 0)
+    critical = data.get("critical", False)
     
     # Check for game start to reset the narrative history
     for ev in events:
@@ -74,14 +76,15 @@ def get_narrative():
             narrative_engine.reset()
             
     mode = request.args.get("mode", "sports")
+    voice = request.args.get("voice", None)
     
     try:
-        result = narrative_engine.evaluate(events, current_time, current_speed, current_combo)
+        result = narrative_engine.evaluate(events, current_time, current_speed, current_combo, critical=critical)
         
         if not result["should_speak"]:
             return jsonify({"skip": True})
             
-        commentary = commentary_engine.generate(result, mode=mode)
+        commentary = commentary_engine.generate(result, mode=mode, voice=voice)
         # Add narrative state and stats for debugging / rendering
         commentary["narrative_state"] = result["state"]
         commentary["stats"] = result["stats"]
@@ -104,8 +107,8 @@ def get_tts():
         return jsonify({"error": "Missing 'text' in request body"}), 400
         
     try:
-        # Preprocess text to strip characters that might cause audio artifacts
-        clean_text = text.replace("!", ".").replace("?", ".").replace("OH.", "Oh.")
+        # Preprocess text but retain exclamation/question marks for high emotion
+        clean_text = text.replace("OH.", "Oh.")
         wav_bytes = tts_provider.generate(clean_text, voice=voice)
         return Response(wav_bytes, mimetype="audio/wav")
     except Exception as e:

@@ -17,6 +17,7 @@ let elapsedPlayTime = 0;
 let score = 0;
 let distanceSurvived = 0;
 let highScore = parseInt(localStorage.getItem('roadcaster_highscore') || '0');
+let highScoreBeatenThisRun = false;
 let comboCount = 0;
 let comboTimer = 0;
 const COMBO_DURATION = 4.0; // Seconds to maintain combo
@@ -37,10 +38,12 @@ const EVENT_PRIORITY = {
 
 // Queue system for commentary
 let lastCommentaryTime = 0;
-const COMMENTARY_INTERVAL = 2500; // 2.5 seconds minimum between lines
+const COMMENTARY_INTERVAL = 1000; // 1.0 seconds minimum between lines
 let pendingEvent = null;
 let activeCommentaryMode = 'sports';
+let activeCommentaryVoice = 'Jasper';
 let serverTtsEnabled = false;
+let isSpeaking = false;
 
 // Audio variables
 let audioCtx = null;
@@ -128,6 +131,8 @@ const dom = {
     startBtn: document.getElementById('start-btn'),
     restartBtn: document.getElementById('restart-btn'),
     ttsLabel: document.getElementById('tts-type-label'),
+    voiceSelect: document.getElementById('voice-select'),
+    voiceBtns: document.querySelectorAll('.voice-btn'),
     
     // Debug panel elements
     debugTtsStatus: document.getElementById('debug-tts-status'),
@@ -204,7 +209,20 @@ function setupDomListeners() {
             dom.modeTabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             activeCommentaryMode = tab.dataset.mode;
-            updateCasterCharacter(activeCommentaryMode);
+            
+            // Sync default voice for mode
+            activeCommentaryVoice = MODE_DEFAULT_VOICES[activeCommentaryMode];
+            if (dom.voiceSelect) {
+                dom.voiceSelect.value = activeCommentaryVoice;
+            }
+            dom.voiceBtns.forEach(btn => {
+                if (btn.dataset.voice === activeCommentaryVoice) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            updateCasterCharacter(activeCommentaryVoice);
         });
     });
 
@@ -222,7 +240,74 @@ function setupDomListeners() {
                     t.classList.remove('active');
                 }
             });
-            updateCasterCharacter(activeCommentaryMode);
+            
+            // Sync default voice for mode
+            activeCommentaryVoice = MODE_DEFAULT_VOICES[activeCommentaryMode];
+            if (dom.voiceSelect) {
+                dom.voiceSelect.value = activeCommentaryVoice;
+            }
+            dom.voiceBtns.forEach(btn => {
+                if (btn.dataset.voice === activeCommentaryVoice) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            updateCasterCharacter(activeCommentaryVoice);
+        });
+    });
+
+    // Voice dropdown selector in bottom HUD panel
+    if (dom.voiceSelect) {
+        dom.voiceSelect.addEventListener('change', (e) => {
+            activeCommentaryVoice = e.target.value;
+            updateCasterCharacter(activeCommentaryVoice);
+            
+            // Sync start screen voice buttons
+            dom.voiceBtns.forEach(btn => {
+                if (btn.dataset.voice === activeCommentaryVoice) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        });
+    }
+
+    // Voice buttons selector in start overlay
+    dom.voiceBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            dom.voiceBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeCommentaryVoice = btn.dataset.voice;
+            
+            // Automatically select and sync caster mode based on voice
+            const char = VOICE_CHARACTERS[activeCommentaryVoice];
+            if (char) {
+                activeCommentaryMode = char.style;
+                // Update bottom mode selector tabs
+                dom.modeTabs.forEach(t => {
+                    if (t.dataset.mode === activeCommentaryMode) {
+                        t.classList.add('active');
+                    } else {
+                        t.classList.remove('active');
+                    }
+                });
+                // Update start overlay mode cards
+                dom.setupModeCards.forEach(c => {
+                    if (c.dataset.mode === activeCommentaryMode) {
+                        c.classList.add('active');
+                    } else {
+                        c.classList.remove('active');
+                    }
+                });
+            }
+            
+            // Sync with bottom panel voice dropdown
+            if (dom.voiceSelect) {
+                dom.voiceSelect.value = activeCommentaryVoice;
+            }
+            updateCasterCharacter(activeCommentaryVoice);
         });
     });
 
@@ -237,10 +322,6 @@ function setupDomListeners() {
     // Volume Control
     dom.volumeSlider.addEventListener('input', (e) => {
         masterVolume = e.target.value / 100.0;
-        if (audioCtx) {
-            // Volume nodes can be adjusted if we are using them,
-            // but for Web Audio API we adjust buffer gain.
-        }
     });
 
     // Collapsible Debug Panel
@@ -253,25 +334,36 @@ function setupDomListeners() {
     window.addEventListener('resize', onWindowResize);
 }
 
-function updateCasterCharacter(mode) {
-    const chars = {
-        sports: { avatar: '🎙️', name: 'JASPER', role: 'Lead Caster' },
-        narrator: { avatar: '🎬', name: 'HUGO', role: 'Cinematic Voice' },
-        savage: { avatar: '💀', name: 'KIKI', role: 'Toxic Commentator' }
-    };
-    
-    const char = chars[mode] || chars.sports;
+const VOICE_CHARACTERS = {
+    'Jasper': { avatar: '🎙️', name: 'JASPER', role: 'Lead Caster', style: 'sports' },
+    'Bruno': { avatar: '🏎️', name: 'BRUNO', role: 'F1 Caster', style: 'sports' },
+    'Leo': { avatar: '⚽', name: 'LEO', role: 'FIFA Caster', style: 'sports' },
+    'Hugo': { avatar: '🎬', name: 'HUGO', role: 'Dramatic Caster', style: 'narrator' },
+    'Bella': { avatar: '📻', name: 'BELLA', role: 'Radio Host', style: 'sports' },
+    'Luna': { avatar: '🌙', name: 'LUNA', role: 'Ambient Narrator', style: 'narrator' },
+    'Rosie': { avatar: '🎭', name: 'ROSIE', role: 'Drama Queen', style: 'savage' },
+    'Kiki': { avatar: '💀', name: 'KIKI', role: 'Toxic Caster', style: 'savage' }
+};
+
+const MODE_DEFAULT_VOICES = {
+    'sports': 'Jasper',
+    'narrator': 'Hugo',
+    'savage': 'Kiki'
+};
+
+function updateCasterCharacter(voice) {
+    const char = VOICE_CHARACTERS[voice] || VOICE_CHARACTERS['Jasper'];
     dom.avatar.textContent = char.avatar;
     dom.avatarName.textContent = char.name;
     dom.avatarRole.textContent = char.role;
     
-    // Set border accent color based on mode
+    // Set border accent color based on voice style
     const panel = dom.broadcastPanel;
-    if (mode === 'sports') {
+    if (char.style === 'sports') {
         panel.style.borderLeftColor = 'var(--accent-cyan)';
-    } else if (mode === 'narrator') {
+    } else if (char.style === 'narrator') {
         panel.style.borderLeftColor = 'var(--accent-orange)';
-    } else if (mode === 'savage') {
+    } else if (char.style === 'savage') {
         panel.style.borderLeftColor = 'var(--accent-pink)';
     }
 }
@@ -933,32 +1025,91 @@ function createSpeedLine() {
     speedLines.push(line);
 }
 
-// Particle System Burst for Crashes
+// Particle System Burst for Crashes - Advanced Graphics
 function createExplosion(pos) {
-    const count = 40;
+    const count = 150; // High particle count
     const pGeo = new THREE.BoxGeometry(0.15, 0.15, 0.15);
+    const smokeGeo = new THREE.BoxGeometry(0.3, 0.3, 0.3);
     
-    // Create random metal fragments, sparks
+    // Spawns multiple categories of particles: Sparks, metal debris, and rising smoke
     for (let i = 0; i < count; i++) {
-        const color = Math.random() > 0.5 ? 0xff0044 : 0x3d0066;
-        const pMat = new THREE.MeshBasicMaterial({ color });
-        const p = new THREE.Mesh(pGeo, pMat);
+        let color, size, mat, p;
+        const rand = Math.random();
+        
+        if (rand > 0.6) {
+            // Bright orange/yellow flame sparks
+            color = Math.random() > 0.5 ? 0xffaa00 : 0xff3300;
+            mat = new THREE.MeshBasicMaterial({ color });
+            p = new THREE.Mesh(pGeo, mat);
+            p.userData = {
+                type: 'spark',
+                velocity: new THREE.Vector3(
+                    (Math.random() - 0.5) * 16,
+                    Math.random() * 12 + 4,
+                    (Math.random() - 0.5) * 16
+                ),
+                gravity: 12,
+                decay: 0.95 + Math.random() * 0.04
+            };
+        } else if (rand > 0.3) {
+            // Silver/metallic car fragments
+            color = Math.random() > 0.5 ? 0x888888 : 0x333333;
+            mat = new THREE.MeshStandardMaterial({ color, metalness: 0.8, roughness: 0.2 });
+            p = new THREE.Mesh(pGeo, mat);
+            p.userData = {
+                type: 'debris',
+                velocity: new THREE.Vector3(
+                    (Math.random() - 0.5) * 14,
+                    Math.random() * 10 + 3,
+                    (Math.random() - 0.5) * 14
+                ),
+                gravity: 18,
+                decay: 0.98
+            };
+        } else {
+            // Rising dark smoke particles
+            color = 0x222222;
+            mat = new THREE.MeshBasicMaterial({ 
+                color, 
+                transparent: true, 
+                opacity: 0.6 
+            });
+            p = new THREE.Mesh(smokeGeo, mat);
+            p.userData = {
+                type: 'smoke',
+                velocity: new THREE.Vector3(
+                    (Math.random() - 0.5) * 6,
+                    Math.random() * 6 + 2,
+                    (Math.random() - 0.5) * 6
+                ),
+                gravity: -2, // rise upward slightly
+                decay: 0.92
+            };
+        }
         
         p.position.copy(pos);
-        
-        // Random velocity vector
-        p.userData = {
-            velocity: new THREE.Vector3(
-                (Math.random() - 0.5) * 12,
-                Math.random() * 10 + 2,
-                (Math.random() - 0.5) * 15
-            ),
-            gravity: 15
-        };
-        
         scene.add(p);
         particles.push(p);
     }
+    
+    // Add point light at explosion center
+    const expLight = new THREE.PointLight(0xff5500, 8, 15);
+    expLight.position.copy(pos);
+    scene.add(expLight);
+    
+    // Animate point light decay
+    const decayInterval = setInterval(() => {
+        if (gameState !== STATE.PLAYING) {
+            expLight.intensity *= 0.9;
+            if (expLight.intensity < 0.1) {
+                scene.remove(expLight);
+                clearInterval(decayInterval);
+            }
+        } else {
+            scene.remove(expLight);
+            clearInterval(decayInterval);
+        }
+    }, 50);
 }
 
 // --- CONTROLS INPUT ---
@@ -1040,10 +1191,27 @@ function update(dt) {
         score += gameSpeed * dt * 0.2;
         distanceSurvived += gameSpeed * dt * 0.1;
         
+        // Live high score crossed check
+        if (score > highScore && highScore > 0 && !highScoreBeatenThisRun) {
+            highScoreBeatenThisRun = true;
+            triggerGameplayEvent('high_score', 'car');
+        }
+        
         // Update DOM elements
         dom.hudScore.textContent = Math.round(score).toLocaleString('en-US', { minimumIntegerDigits: 6, useGrouping: false });
-        dom.hudSpeed.textContent = Math.round(gameSpeed * 1.8); // convert to km/h scale
+        
+        const currentSpeedKmh = gameSpeed * 1.8;
+        dom.hudSpeed.textContent = Math.round(currentSpeedKmh); // convert to km/h scale
         dom.hudDistance.textContent = Math.round(distanceSurvived);
+        
+        // Update speedometer progress gauge
+        const maxSpeedKmh = MAX_SPEED * 1.8;
+        const progressPercent = Math.min(1.0, currentSpeedKmh / maxSpeedKmh);
+        const dashoffset = 190 - (progressPercent * 190);
+        const speedProgressElement = document.getElementById('speedometer-progress');
+        if (speedProgressElement) {
+            speedProgressElement.style.strokeDashoffset = dashoffset;
+        }
         
         // Combo decay timer
         if (comboCount > 0) {
@@ -1222,6 +1390,30 @@ function updateParticles(dt) {
         ud.velocity.y -= ud.gravity * dt;
         p.position.addScaledVector(ud.velocity, dt);
         
+        // Spin the particles for realistic debris motion
+        p.rotation.x += ud.velocity.y * dt * 0.5;
+        p.rotation.y += ud.velocity.x * dt * 0.5;
+        
+        // Shrink sparks / fade smoke
+        if (ud.type === 'spark') {
+            p.scale.multiplyScalar(ud.decay);
+            if (p.scale.x < 0.05) {
+                scene.remove(p);
+                particles.splice(i, 1);
+                continue;
+            }
+        } else if (ud.type === 'smoke') {
+            if (p.material) {
+                p.material.opacity *= ud.decay;
+                p.scale.multiplyScalar(1.02); // expand slightly as it diffuses
+                if (p.material.opacity < 0.05) {
+                    scene.remove(p);
+                    particles.splice(i, 1);
+                    continue;
+                }
+            }
+        }
+        
         // Recycle/remove once below ground level
         if (p.position.y < -0.2) {
             scene.remove(p);
@@ -1308,16 +1500,24 @@ function triggerNearMiss(tv) {
     const bonus = 25 * comboCount;
     score += bonus;
     
+    // Sideways proximity check for Extreme Near Miss
+    const xDist = Math.abs(playerVehicle.position.x - tv.position.x);
+    const isExtreme = xDist < 1.35; // Sideways overlap proximity threshold
+    
     // Check milestones
     if (comboCount % 5 === 0) {
         triggerGameplayEvent('combo_milestone', tv.userData.type);
     } else {
         // Recovery check: did we have a near miss right after another very recently?
-        const wasRecovery = recentEvents.length > 0 && recentEvents[recentEvents.length - 1] === 'near_miss';
+        const wasRecovery = recentEvents.length > 0 && (recentEvents[recentEvents.length - 1] === 'near_miss' || recentEvents[recentEvents.length - 1] === 'extreme_near_miss');
         if (wasRecovery) {
             triggerGameplayEvent('recovery', tv.userData.type);
         } else {
-            triggerGameplayEvent('near_miss', tv.userData.type);
+            if (isExtreme) {
+                triggerGameplayEvent('extreme_near_miss', tv.userData.type);
+            } else {
+                triggerGameplayEvent('near_miss', tv.userData.type);
+            }
         }
     }
 }
@@ -1362,23 +1562,18 @@ function triggerCrash(tv) {
     });
     
     // Set high score
-    if (score > highScore) {
+    const isNewHighScore = score > highScore;
+    if (isNewHighScore) {
         highScore = Math.round(score);
         localStorage.setItem('roadcaster_highscore', highScore);
         dom.hudHighscore.textContent = highScore.toLocaleString();
     }
     
+    // Instantly show the game over overlay and restart button!
+    showGameOverScreen(null);
+    
     // Dispatch crash event immediately (bypassing normal queue interval)
-    sendCommentaryRequest({
-        event: 'crash',
-        speed: Math.round(gameSpeed * 1.8),
-        combo: comboCount,
-        vehicle_type: tv.userData.type,
-        total_score: Math.round(score),
-        distance_survived: Math.round(distanceSurvived),
-        is_high_score: score >= highScore,
-        recent_events: recentEvents
-    }, true);
+    triggerGameplayEvent('crash', tv.userData.type);
 }
 
 // Camera FX
@@ -1419,9 +1614,10 @@ function flashScreen(type) {
 }
 
 // --- NARRATIVE BUFFER & COMMENTARY LAYER ---
+// --- NARRATIVE BUFFER & COMMENTARY LAYER ---
 const narrativeBuffer = {
     events: [],
-    tickInterval: 4000,    // Evaluate narrative state every 4 seconds
+    tickInterval: 3500,    // Evaluate narrative state every 3.5 seconds (broadcaster summary!)
     lastTickTime: 0
 };
 
@@ -1442,21 +1638,26 @@ function triggerGameplayEvent(eventType, vehicleType) {
     recentEvents.push(eventType);
     if (recentEvents.length > 5) recentEvents.shift();
     
-    // Direct fire immediate commentary on game start (crash is fired directly in triggerCrash)
-    if (eventType === 'game_start') {
-        sendCommentaryRequest(ev);
+    // Critical bypass events (Crash & Game Start) play immediately, interrupting current audio
+    const isCritical = (eventType === 'crash' || eventType === 'game_start');
+    
+    if (isCritical) {
+        stopAudio(); // cancel active TTS immediately
+        sendNarrativeRequest([ev], true); // dispatch instantly
         return;
     }
     
-    // Buffer all other gameplay events
+    // Otherwise buffer normally
     narrativeBuffer.events.push(ev);
 }
 
 function processNarrativeTick() {
     if (gameState !== STATE.PLAYING) return;
     
+    // Prevent overlapping commentary: do not send ticks while caster is speaking
+    if (isSpeaking) return;
+    
     const timeNow = performance.now();
-    // Initialize lastTickTime on first call to prevent immediate tick before gameplay starts
     if (narrativeBuffer.lastTickTime === 0) {
         narrativeBuffer.lastTickTime = timeNow;
         return;
@@ -1465,22 +1666,31 @@ function processNarrativeTick() {
     if (timeNow - narrativeBuffer.lastTickTime >= narrativeBuffer.tickInterval) {
         narrativeBuffer.lastTickTime = timeNow;
         
+        // Accumulate and send when we have events or periodically to evaluate control/cruising streak
+        if (narrativeBuffer.events.length === 0) {
+            if (timeNow - processNarrativeTick.lastEmptyTickTime < 4000) {
+                return;
+            }
+            processNarrativeTick.lastEmptyTickTime = timeNow;
+        }
+        
         const batch = [...narrativeBuffer.events];
         narrativeBuffer.events = [];
         
         sendNarrativeRequest(batch);
     }
 }
+processNarrativeTick.lastEmptyTickTime = 0;
 
-async function sendNarrativeRequest(batch) {
+async function sendNarrativeRequest(batch, isCritical = false) {
     const payload = {
         events: batch,
         current_time: elapsedPlayTime,
         current_speed: Math.round(gameSpeed * 1.8),
-        current_combo: comboCount
+        current_combo: comboCount,
+        critical: isCritical
     };
     
-    // Debug panel: display the last event in the batch, or a default cruising info
     const displayEv = batch.length > 0 ? batch[batch.length - 1] : {
         event: 'cruising',
         speed: Math.round(gameSpeed * 1.8),
@@ -1493,7 +1703,7 @@ async function sendNarrativeRequest(batch) {
     dom.debugJsonDisplay.textContent = JSON.stringify(payload, null, 2);
     
     try {
-        const response = await fetch(`/api/narrative?mode=${activeCommentaryMode}`, {
+        const response = await fetch(`/api/narrative?mode=${activeCommentaryMode}&voice=${activeCommentaryVoice}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -1501,8 +1711,8 @@ async function sendNarrativeRequest(batch) {
         
         const data = await response.json();
         
-        if (data.skip) {
-            // Keep the debug pipeline metric updated with latest state if skipped
+        // Skip speaking if server requested, unless it is a critical bypass event
+        if (data.skip && !isCritical) {
             return;
         }
         
@@ -1511,85 +1721,53 @@ async function sendNarrativeRequest(batch) {
             return;
         }
         
-        // Show narrative commentary
+        // Render commentary subtitles with typewriter and persistence
         renderCommentaryText(data.commentary);
         updateDebugPipeline(data);
         
-        // Update Event Type display in debug panel to the narrative state
         if (data.narrative_state) {
             dom.debugEventType.textContent = data.narrative_state;
         }
         
-        // Play voice
+        // Trigger gameplay over overlay update if crash event returns
+        if (isCritical && batch.some(e => e.event === 'crash')) {
+            showGameOverScreen(data.commentary);
+        }
+        
         playNarratorVoice(data.commentary, data.voice);
         
     } catch (err) {
         console.error("Narrative request failed:", err);
-        // Fallback text rendering if offline and we have events
         if (batch.length > 0) {
             const fallbackText = getLocalFallbackText(batch[batch.length - 1]);
             renderCommentaryText(fallbackText);
             playNarratorVoice(fallbackText, 'Jasper');
+            if (isCritical && batch.some(e => e.event === 'crash')) {
+                showGameOverScreen(fallbackText);
+            }
         }
     }
 }
 
-// Keep direct sendCommentaryRequest for immediate events (game_start & crash)
-async function sendCommentaryRequest(ev, isCrash = false) {
-    updateDebugEventPanel(ev);
-    
-    try {
-        const response = await fetch(`/api/commentary?mode=${activeCommentaryMode}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(ev)
-        });
-        
-        const data = await response.json();
-        
-        if (data.error) {
-            console.error("Commentary server error:", data.error);
-            return;
-        }
-        
-        // Show commentary
-        renderCommentaryText(data.commentary);
-        updateDebugPipeline(data);
-        
-        // Play audio (TTS)
-        playNarratorVoice(data.commentary, data.voice);
-        
-        if (isCrash) {
-            showGameOverScreen(data.commentary);
-        }
-    } catch (err) {
-        console.error("Commentary request failed:", err);
-        // Fallback text rendering if offline
-        const fallbackText = getLocalFallbackText(ev);
-        renderCommentaryText(fallbackText);
-        playNarratorVoice(fallbackText, 'Jasper');
-        
-        if (isCrash) {
-            showGameOverScreen(fallbackText);
-        }
-    }
-}
-
-// Local hardcoded fallback sentences for completely offline testing
+// Local fallback dictionary
 function getLocalFallbackText(ev) {
     if (ev.event === 'crash') return "And that is a massive crash. The run is over.";
-    if (ev.event === 'near_miss') return "Centimeters away! That was incredibly close.";
-    if (ev.event === 'combo_milestone') return `Incredible flow! A combo of ${ev.combo} close calls!`;
-    return "Cruising past traffic on the night highway.";
+    if (ev.event === 'extreme_near_miss') return "Centimeters away! That was incredibly close.";
+    if (ev.event === 'near_miss') return "Close shave on the highway!";
+    return "Cruising past traffic on the highway.";
 }
 
-// Typewriter Text Effect
+let subtitleTimeout = null;
+
+// Typewriter Text Effect - Persistent Subtitles Fading out after 4.5 seconds
 function renderCommentaryText(text) {
     const display = dom.commentaryText;
     display.textContent = '';
+    display.style.opacity = '1';
+    
+    if (subtitleTimeout) clearTimeout(subtitleTimeout);
     
     let index = 0;
-    // Fast typewriter typing speed
     const charsPerSec = 45;
     const interval = 1000 / charsPerSec;
     
@@ -1598,21 +1776,31 @@ function renderCommentaryText(text) {
             display.textContent += text.charAt(index);
             index++;
             setTimeout(type, interval);
+        } else {
+            // Persist subtitles for 4.5 seconds after speech/typewriter finishes
+            subtitleTimeout = setTimeout(() => {
+                display.style.transition = 'opacity 0.8s ease-out';
+                display.style.opacity = '0';
+                setTimeout(() => {
+                    if (display.style.opacity === '0') {
+                        display.textContent = '';
+                    }
+                }, 800);
+            }, 4500);
         }
     }
+    display.style.transition = 'none';
     type();
 }
 
-// Play TTS Audio
+// Play TTS Audio - Tracks isSpeaking status to block overlapping speech
 async function playNarratorVoice(text, voice) {
-    // Cancel any currently playing speech source
     stopAudio();
     
     currentTtsRequestId++;
     const myRequestId = currentTtsRequestId;
     
     if (serverTtsEnabled) {
-        // Fetch audio bytes from Flask
         try {
             const response = await fetch('/api/tts', {
                 method: 'POST',
@@ -1620,10 +1808,9 @@ async function playNarratorVoice(text, voice) {
                 body: JSON.stringify({ text, voice })
             });
             
-            if (myRequestId !== currentTtsRequestId) return; // Discard if a newer request started
+            if (myRequestId !== currentTtsRequestId) return;
             
             if (response.status === 503) {
-                // Fallen back mid-game?
                 fallbackToWebSpeech("Server disabled TTS");
                 playBrowserTtsFallback(text, voice);
                 return;
@@ -1632,31 +1819,39 @@ async function playNarratorVoice(text, voice) {
             const audioBuffer = await response.arrayBuffer();
             initAudio();
             
-            if (myRequestId !== currentTtsRequestId) return; // Discard if a newer request started
+            if (myRequestId !== currentTtsRequestId) return;
             
+            isSpeaking = true;
             audioCtx.decodeAudioData(audioBuffer, (decodedData) => {
-                if (myRequestId !== currentTtsRequestId) return; // Discard if a newer request started
+                if (myRequestId !== currentTtsRequestId) return;
                 
                 const source = audioCtx.createBufferSource();
                 source.buffer = decodedData;
                 
-                // Gain node for volume control
                 const gainNode = audioCtx.createGain();
                 gainNode.gain.value = masterVolume;
                 
                 source.connect(gainNode);
                 gainNode.connect(audioCtx.destination);
                 
+                source.onended = () => {
+                    if (myRequestId === currentTtsRequestId) {
+                        isSpeaking = false;
+                    }
+                };
+                
                 source.start(0);
                 currentAudioSource = source;
             }, (e) => {
                 console.error("Error decoding audio buffer:", e);
+                isSpeaking = false;
                 if (myRequestId === currentTtsRequestId) {
                     playBrowserTtsFallback(text, voice);
                 }
             });
         } catch (err) {
             console.error("Flask TTS request failed, using browser Web Speech:", err);
+            isSpeaking = false;
             if (myRequestId === currentTtsRequestId) {
                 playBrowserTtsFallback(text, voice);
             }
@@ -1669,41 +1864,42 @@ async function playNarratorVoice(text, voice) {
 function playBrowserTtsFallback(text, voiceName) {
     if (!window.speechSynthesis) return;
     
-    window.speechSynthesis.cancel(); // Clear queue
+    window.speechSynthesis.cancel();
     
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.volume = masterVolume;
     
-    // Assign rate/pitch based on voice style
-    if (voiceName === 'Hugo') { // Narrator
+    if (voiceName === 'Hugo') {
         utterance.pitch = 0.75;
         utterance.rate = 0.85;
-    } else if (voiceName === 'Kiki') { // Savage
+    } else if (voiceName === 'Kiki') {
         utterance.pitch = 1.15;
         utterance.rate = 1.05;
-    } else { // Sports (Jasper)
+    } else {
         utterance.pitch = 0.95;
         utterance.rate = 1.15;
     }
     
-    // Try to find a fitting system voice (e.g. English male/female)
     const voices = window.speechSynthesis.getVoices();
     if (voices.length > 0) {
         let selectedVoice = null;
         if (voiceName === 'Kiki') {
-            // Prefer female voice
             selectedVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Female') || v.name.includes('Zira') || v.name.includes('Google US English')));
         } else {
-            // Prefer male voice
             selectedVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Male') || v.name.includes('David') || v.name.includes('Google UK English Male')));
         }
         if (selectedVoice) utterance.voice = selectedVoice;
     }
     
+    isSpeaking = true;
+    utterance.onend = () => { isSpeaking = false; };
+    utterance.onerror = () => { isSpeaking = false; };
+    
     window.speechSynthesis.speak(utterance);
 }
 
 function stopAudio() {
+    isSpeaking = false;
     if (currentAudioSource) {
         try {
             currentAudioSource.stop();
@@ -1784,6 +1980,7 @@ function restartGame() {
     elapsedPlayTime = 0;
     gameSpeed = BASE_SPEED;
     recentEvents = [];
+    highScoreBeatenThisRun = false;
     narrativeBuffer.events = [];
     narrativeBuffer.lastTickTime = 0;
     processedNearMisses.clear();
@@ -1805,6 +2002,12 @@ function restartGame() {
     dom.hudDistance.textContent = '0';
     dom.comboBadge.classList.add('hidden');
     dom.commentaryText.textContent = "Restarting commentary feed...";
+    
+    // Reset speedometer progress gauge
+    const speedProgressElement = document.getElementById('speedometer-progress');
+    if (speedProgressElement) {
+        speedProgressElement.style.strokeDashoffset = '190';
+    }
     
     dom.gameoverOverlay.classList.add('hidden');
     gameState = STATE.PLAYING;
