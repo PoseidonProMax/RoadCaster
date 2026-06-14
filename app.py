@@ -84,9 +84,9 @@ def get_narrative():
         actions = data.get("actions", [])
         result = narrative_engine.evaluate(events, current_time, current_speed, current_combo, critical=critical, actions=actions)
         
-        # If there are physical actions, attempt to compose a play-by-play commentary
+        # If there are physical actions, attempt to compose a play-by-play commentary (unless we crashed or started the game)
         commentary_text = ""
-        if actions:
+        if actions and result["state"] not in ("Crash", "game_start"):
             commentary_text = action_narrator.compose(actions, result["state"], None, mode, result["stats"])
             
         if commentary_text:

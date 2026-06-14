@@ -20,10 +20,10 @@ class CommentaryEngine:
                     "The lights are green and we are live from the fastest highway on earth!"
                 ],
                 "Crash": [
-                    "OH NO! A COLLISION! THE CAR IS IN RUINS! GAME OVER!",
-                    "DEVASTATING COLLISION! Absolute catastrophe on the highway!",
-                    "SMASH! The physics engine wins this round! A dramatic end to the run!",
-                    "AND HE'S OUT! HE HITS THE VEHICLE AT SPEED! SPECTACULAR DESTRUCTION!"
+                    "OH NO! A COLLISION! AAAAAAH! HA HA HA! GAME OVER!",
+                    "DEVASTATING COLLISION! AAAAH! HA HA HA! Absolute catastrophe on the highway!",
+                    "SMASH! HA HA HA! The physics engine wins this round! What a spectacular wreck!",
+                    "AND HE'S OUT! WRECKED! AAAAH! HA HA HA! SPECTACULAR DESTRUCTION!"
                 ],
                 "Extreme Near Miss": [
                     "GOOD HEAVENS! THAT WAS CENTIMETERS FROM AN ABSOLUTE DISASTER!",
@@ -70,9 +70,10 @@ class CommentaryEngine:
                     "Under the shadow of the day, the journey begins."
                 ],
                 "Crash": [
-                    "The highway always wins. In the end.",
-                    "A flash of chrome, a screech of tires, and then... silence.",
-                    "The run ends as all fast runs must: in spectacular ruin."
+                    "A sudden impact. Screams, chrome, and... ha... ha... ha... silence.",
+                    "The highway always wins. In the end. Ha... ha... ha...",
+                    "A flash of chrome, a screech of tires, and then... ha ha ha... silence.",
+                    "The run ends as all fast runs must: in spectacular ruin. Ha ha ha."
                 ],
                 "Extreme Near Miss": [
                     "Death whispered, but the driver didn't listen.",
@@ -137,9 +138,10 @@ class CommentaryEngine:
                     "Here we go again. Another generic run."
                 ],
                 "Crash": [
-                    "And there it is. Wrecked. Absolutely predictable.",
-                    "Physics wins again. Back to the lobby for you.",
-                    "Well, at least the crash was slightly entertaining."
+                    "HA HA HA! Wrecked! Absolutely predictable.",
+                    "HA HA HA! Back to the lobby for you! Absolute disaster.",
+                    "HA HA HA! Look at that spectacular wreck! You actually failed!",
+                    "HA HA HA! Wrecked! Hope you have insurance, because that was pathetic!"
                 ],
                 "Extreme Near Miss": [
                     "Missed by a hair. Your luck won't last forever.",

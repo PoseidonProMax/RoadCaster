@@ -138,6 +138,11 @@ const dom = {
     ttsLabel: document.getElementById('tts-type-label'),
     voiceSelect: document.getElementById('voice-select'),
     voiceBtns: document.querySelectorAll('.voice-btn'),
+    finalScore: document.getElementById('final-score'),
+    finalDistance: document.getElementById('final-distance'),
+    finalCombo: document.getElementById('final-combo'),
+    finalSpeed: document.getElementById('final-speed'),
+    finalCommentary: document.getElementById('final-commentary'),
     
     // Debug panel elements
     debugTtsStatus: document.getElementById('debug-tts-status'),
@@ -2119,9 +2124,10 @@ function restartGame() {
     }
     
     dom.gameoverOverlay.classList.add('hidden');
-    gameState = STATE.PLAYING;
-    
-    triggerGameplayEvent('game_start', 'car');
+    dom.hud.classList.add('hidden');
+    dom.broadcastPanel.classList.add('hidden');
+    dom.startOverlay.classList.remove('hidden');
+    gameState = STATE.START;
 }
 
 function showGameOverScreen(finalText) {
