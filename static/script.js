@@ -46,6 +46,7 @@ let serverTtsEnabled = false;
 let audioCtx = null;
 let currentAudioSource = null;
 let masterVolume = 0.7;
+let currentTtsRequestId = 0;
 
 // --- THREE.JS GRAPHICS ---
 let container, renderer, scene, camera;
@@ -291,8 +292,8 @@ function initThree() {
     
     // Scene
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x04040d); // Midnight dark sky
-    scene.fog = new THREE.FogExp2(0x04040d, 0.0085); // Fog makes road fade into distance
+    scene.background = new THREE.Color(0xa0d2f0); // Beautiful day sky blue
+    scene.fog = new THREE.FogExp2(0xa0d2f0, 0.0055); // Softer fog for daytime horizon
     
     // Renderer
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -311,13 +312,13 @@ function initThree() {
     camera.lookAt(0, 1.0, -15);
     
     // Lighting
-    ambientLight = new THREE.AmbientLight(0xffffff, 0.05); // Very dim fill
+    ambientLight = new THREE.AmbientLight(0xffffff, 0.65); // Bright day ambient fill
     scene.add(ambientLight);
     
-    hemLight = new THREE.HemisphereLight(0x05051a, 0x050505, 0.35); // Blue night skylight
+    hemLight = new THREE.HemisphereLight(0x87ceeb, 0x556b2f, 0.45); // Sky blue to grass olive
     scene.add(hemLight);
     
-    dirLight = new THREE.DirectionalLight(0x0a1533, 1.5); // Moon/night glow
+    dirLight = new THREE.DirectionalLight(0xfffaf0, 2.5); // Bright warm yellow sun
     dirLight.position.set(20, 40, 20);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 1024;
@@ -336,7 +337,7 @@ function initThree() {
 function createEnvironment() {
     // Ground plane
     const groundGeo = new THREE.PlaneGeometry(1000, 1000);
-    const groundMat = new THREE.MeshStandardMaterial({ color: 0x020206, roughness: 0.95 });
+    const groundMat = new THREE.MeshStandardMaterial({ color: 0x2e6f40, roughness: 0.9 }); // Green grass/earth
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = -0.05;
@@ -373,8 +374,8 @@ function createRoadSegment(z) {
     // Asphalt Slab (width 12 units = 3 lanes of 3.5 units plus shoulders)
     const asphaltGeo = new THREE.PlaneGeometry(13, SEGMENT_LENGTH);
     const asphaltMat = new THREE.MeshStandardMaterial({ 
-        color: 0x0f0f1c, 
-        roughness: 0.6, // slightly glossy for headlight reflections
+        color: 0x2c2c35, // Lighter grey asphalt for daytime
+        roughness: 0.7, 
         metalness: 0.1
     });
     const asphalt = new THREE.Mesh(asphaltGeo, asphaltMat);
@@ -455,17 +456,17 @@ function createLamppost(z, x) {
     
     // Light bulb/Fixture
     const bulbGeo = new THREE.SphereGeometry(0.2, 8, 8);
-    const bulbMat = new THREE.MeshBasicMaterial({ color: 0xffe699 });
+    const bulbMat = new THREE.MeshBasicMaterial({ color: 0xcccccc }); // off grey bulb during day
     const bulb = new THREE.Mesh(bulbGeo, bulbMat);
     bulb.position.set(dir * 1.45, 5.85, 0);
     lamppost.add(bulb);
     
-    // Light cone (Transparent cylinder)
+    // Light cone (Invisible during day)
     const coneGeo = new THREE.CylinderGeometry(0.1, 5, 6, 16, 1, true);
     const coneMat = new THREE.MeshBasicMaterial({
         color: 0xffd966,
         transparent: true,
-        opacity: 0.08,
+        opacity: 0.0, // turned off
         blending: THREE.AdditiveBlending,
         side: THREE.DoubleSide,
         depthWrite: false
@@ -474,10 +475,10 @@ function createLamppost(z, x) {
     cone.position.set(dir * 1.45, 2.9, 0);
     lamppost.add(cone);
     
-    // PointLight to actually light up passing cars
-    const light = new THREE.PointLight(0xffe699, 1.2, 12, 1.5);
+    // PointLight (turned off during day)
+    const light = new THREE.PointLight(0xffe699, 0.0, 12, 1.5); // 0 intensity
     light.position.set(dir * 1.45, 5.5, 0);
-    light.castShadow = false; // PointLight shadows are expensive, DirectionalLight handles shadows
+    light.castShadow = false;
     lamppost.add(light);
     
     lamppost.userData = { initialX: x, type: 'lamppost' };
@@ -522,12 +523,12 @@ function createPlayer() {
     playerVehicle = new THREE.Group();
     playerVehicle.position.set(0, 0.35, 0); // Positioned at Z = 0
     
-    // Main Body (Sleek sports car)
+    // Main Body (Glossy sports car red)
     const bodyGeo = new THREE.BoxGeometry(1.6, 0.45, 3.8);
     const bodyMat = new THREE.MeshStandardMaterial({ 
-        color: 0x3d0066, // Deep neon purple
-        roughness: 0.1, 
-        metalness: 0.9 
+        color: 0xd80000, // Sleek chrome/red
+        roughness: 0.05, 
+        metalness: 1.0 
     });
     const body = new THREE.Mesh(bodyGeo, bodyMat);
     body.castShadow = true;
@@ -537,18 +538,76 @@ function createPlayer() {
     // Cockpit
     const cockpitGeo = new THREE.BoxGeometry(1.3, 0.4, 1.8);
     const cockpitMat = new THREE.MeshStandardMaterial({ 
-        color: 0x0a0a0f, 
+        color: 0x050508, // Very dark tinted glass
         roughness: 0.05, 
-        metalness: 0.9 
+        metalness: 0.95 
     });
     const cockpit = new THREE.Mesh(cockpitGeo, cockpitMat);
     cockpit.position.set(0, 0.4, -0.2);
     cockpit.castShadow = true;
     playerVehicle.add(cockpit);
     
-    // spoiler
+    // Windshield (cyan tinted glass at front)
+    const shieldGeo = new THREE.BoxGeometry(1.25, 0.45, 0.02);
+    const shieldMat = new THREE.MeshStandardMaterial({
+        color: 0x00f0ff,
+        transparent: true,
+        opacity: 0.4,
+        roughness: 0.1,
+        metalness: 0.9
+    });
+    const shield = new THREE.Mesh(shieldGeo, shieldMat);
+    shield.position.set(0, 0.4, -1.05);
+    shield.rotation.x = -Math.PI / 6; // Angled aerodynamic windshield
+    playerVehicle.add(shield);
+    
+    // Double Racing Stripes (Contrast neon cyan)
+    const stripeGeo = new THREE.BoxGeometry(0.12, 0.01, 3.8);
+    const stripeMat = new THREE.MeshStandardMaterial({ color: 0x00f0ff, roughness: 0.1 });
+    
+    const stripeL = new THREE.Mesh(stripeGeo, stripeMat);
+    stripeL.position.set(-0.15, 0.23, 0);
+    playerVehicle.add(stripeL);
+    
+    const stripeR = stripeL.clone();
+    stripeR.position.x = 0.15;
+    playerVehicle.add(stripeR);
+    
+    // Sporty Side Mirrors
+    const mirrorMat = new THREE.MeshStandardMaterial({ color: 0xd80000, roughness: 0.1 });
+    const mirrorGlassMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 1.0, roughness: 0.05 });
+    
+    // Left Side Mirror
+    const mirrorLGroup = new THREE.Group();
+    mirrorLGroup.position.set(-0.85, 0.4, -0.5);
+    const stemL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.05, 0.05), mirrorMat);
+    stemL.position.set(-0.06, 0, 0);
+    mirrorLGroup.add(stemL);
+    const bodyL = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.1, 0.08), mirrorMat);
+    bodyL.position.set(-0.15, 0, 0);
+    mirrorLGroup.add(bodyL);
+    const glassL = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.08), mirrorGlassMat);
+    glassL.position.set(-0.19, 0, 0.041);
+    mirrorLGroup.add(glassL);
+    playerVehicle.add(mirrorLGroup);
+    
+    // Right Side Mirror
+    const mirrorRGroup = new THREE.Group();
+    mirrorRGroup.position.set(0.85, 0.4, -0.5);
+    const stemR = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.05, 0.05), mirrorMat);
+    stemR.position.set(0.06, 0, 0);
+    mirrorRGroup.add(stemR);
+    const bodyR = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.1, 0.08), mirrorMat);
+    bodyR.position.set(0.15, 0, 0);
+    mirrorRGroup.add(bodyR);
+    const glassR = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.08), mirrorGlassMat);
+    glassR.position.set(0.19, 0, 0.041);
+    mirrorRGroup.add(glassR);
+    playerVehicle.add(mirrorRGroup);
+    
+    // Spoiler
     const spoilerWingGeo = new THREE.BoxGeometry(1.8, 0.06, 0.4);
-    const spoilerMat = new THREE.MeshStandardMaterial({ color: 0x3d0066, roughness: 0.2 });
+    const spoilerMat = new THREE.MeshStandardMaterial({ color: 0xd80000, roughness: 0.2 });
     const wing = new THREE.Mesh(spoilerWingGeo, spoilerMat);
     wing.position.set(0, 0.5, 1.7);
     wing.castShadow = true;
@@ -573,12 +632,17 @@ function createPlayer() {
     headlightR.position.x = 0.6;
     playerVehicle.add(headlightR);
     
-    // Front headlights SpotLight to project on the road
-    const headSpot = new THREE.SpotLight(0x00ffff, 3, 20, Math.PI/6, 0.5, 1);
+    // Front headlights SpotLight to project on the road (reduced for day)
+    const headSpot = new THREE.SpotLight(0x00ffff, 0.5, 20, Math.PI/6, 0.5, 1);
     headSpot.position.set(0, 0.1, -1.9);
     headSpot.target.position.set(0, -0.5, -15);
     playerVehicle.add(headSpot);
     playerVehicle.add(headSpot.target);
+    
+    // Underglow Cyan PointLight
+    const underglow = new THREE.PointLight(0x00ffff, 1.5, 4, 1.5);
+    underglow.position.set(0, -0.2, 0);
+    playerVehicle.add(underglow);
     
     // Taillights (Glowing Red emissive boxes)
     const tailMat = new THREE.MeshBasicMaterial({ color: 0xff0044 });
@@ -590,10 +654,23 @@ function createPlayer() {
     taillightR.position.x = 0.6;
     playerVehicle.add(taillightR);
     
-    // Wheels (Dark grey cylinders)
+    // Chrome Exhaust Pipes
+    const exhaustMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.9, roughness: 0.1 });
+    const pipeL = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.5, 8), exhaustMat);
+    pipeL.rotation.x = Math.PI / 2;
+    pipeL.position.set(-0.5, -0.15, 1.9);
+    playerVehicle.add(pipeL);
+    const pipeR = pipeL.clone();
+    pipeR.position.x = 0.5;
+    playerVehicle.add(pipeR);
+    
+    // Wheels (Dark grey cylinders with shiny chrome rims)
     const wheelGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.3, 16);
     wheelGeo.rotateZ(Math.PI / 2);
     const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
+    const rimGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.32, 12);
+    rimGeo.rotateZ(Math.PI / 2);
+    const rimMat = new THREE.MeshStandardMaterial({ color: 0xe5e4e2, metalness: 1.0, roughness: 0.05 });
     
     const wheels = [];
     const positions = [
@@ -607,6 +684,11 @@ function createPlayer() {
         const w = new THREE.Mesh(wheelGeo, wheelMat);
         w.position.set(pos[0], pos[1], pos[2]);
         w.castShadow = true;
+        
+        // Add rim as child to wheel so it rotates with it!
+        const rim = new THREE.Mesh(rimGeo, rimMat);
+        w.add(rim);
+        
         playerVehicle.add(w);
         wheels.push(w);
     });
@@ -1079,8 +1161,8 @@ function update(dt) {
         // Collisions & Near Miss Checks
         checkCollisions();
         
-        // Process commentary queue
-        processCommentaryQueue();
+        // Process narrative tick
+        processNarrativeTick();
     }
     
     // Update active particles (even if crashed, to watch fragments fall)
@@ -1336,7 +1418,13 @@ function flashScreen(type) {
     });
 }
 
-// --- QUEUE SYSTEM & EVENT GENERATION ---
+// --- NARRATIVE BUFFER & COMMENTARY LAYER ---
+const narrativeBuffer = {
+    events: [],
+    tickInterval: 4000,    // Evaluate narrative state every 4 seconds
+    lastTickTime: 0
+};
+
 function triggerGameplayEvent(eventType, vehicleType) {
     const ev = {
         event: eventType,
@@ -1346,46 +1434,107 @@ function triggerGameplayEvent(eventType, vehicleType) {
         total_score: Math.round(score),
         distance_survived: Math.round(distanceSurvived),
         is_high_score: score >= highScore,
-        recent_events: [...recentEvents]
+        recent_events: [...recentEvents],
+        timestamp: elapsedPlayTime
     };
     
     // Maintain rolling list of 5 recent events
     recentEvents.push(eventType);
     if (recentEvents.length > 5) recentEvents.shift();
     
-    // Queue it
-    queueGameplayEvent(ev);
-}
-
-function queueGameplayEvent(ev) {
-    if (!pendingEvent) {
-        pendingEvent = ev;
+    // Direct fire immediate commentary on game start (crash is fired directly in triggerCrash)
+    if (eventType === 'game_start') {
+        sendCommentaryRequest(ev);
         return;
     }
     
-    // Compare priorities if there is already a pending event
-    const currentPriority = EVENT_PRIORITY[pendingEvent.event] || 0;
-    const newPriority = EVENT_PRIORITY[ev.event] || 0;
-    
-    if (newPriority > currentPriority) {
-        pendingEvent = ev;
-    }
+    // Buffer all other gameplay events
+    narrativeBuffer.events.push(ev);
 }
 
-function processCommentaryQueue() {
+function processNarrativeTick() {
+    if (gameState !== STATE.PLAYING) return;
+    
     const timeNow = performance.now();
-    if (!pendingEvent) return;
+    // Initialize lastTickTime on first call to prevent immediate tick before gameplay starts
+    if (narrativeBuffer.lastTickTime === 0) {
+        narrativeBuffer.lastTickTime = timeNow;
+        return;
+    }
     
-    // Check rate limit (2.5s)
-    if (timeNow - lastCommentaryTime >= COMMENTARY_INTERVAL) {
-        const evToProcess = pendingEvent;
-        pendingEvent = null;
-        lastCommentaryTime = timeNow;
-        sendCommentaryRequest(evToProcess);
+    if (timeNow - narrativeBuffer.lastTickTime >= narrativeBuffer.tickInterval) {
+        narrativeBuffer.lastTickTime = timeNow;
+        
+        const batch = [...narrativeBuffer.events];
+        narrativeBuffer.events = [];
+        
+        sendNarrativeRequest(batch);
     }
 }
 
-// --- API WORKFLOW ---
+async function sendNarrativeRequest(batch) {
+    const payload = {
+        events: batch,
+        current_time: elapsedPlayTime,
+        current_speed: Math.round(gameSpeed * 1.8),
+        current_combo: comboCount
+    };
+    
+    // Debug panel: display the last event in the batch, or a default cruising info
+    const displayEv = batch.length > 0 ? batch[batch.length - 1] : {
+        event: 'cruising',
+        speed: Math.round(gameSpeed * 1.8),
+        combo: comboCount,
+        vehicle_type: 'car',
+        total_score: Math.round(score),
+        distance_survived: Math.round(distanceSurvived)
+    };
+    updateDebugEventPanel(displayEv);
+    dom.debugJsonDisplay.textContent = JSON.stringify(payload, null, 2);
+    
+    try {
+        const response = await fetch(`/api/narrative?mode=${activeCommentaryMode}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        const data = await response.json();
+        
+        if (data.skip) {
+            // Keep the debug pipeline metric updated with latest state if skipped
+            return;
+        }
+        
+        if (data.error) {
+            console.error("Narrative server error:", data.error);
+            return;
+        }
+        
+        // Show narrative commentary
+        renderCommentaryText(data.commentary);
+        updateDebugPipeline(data);
+        
+        // Update Event Type display in debug panel to the narrative state
+        if (data.narrative_state) {
+            dom.debugEventType.textContent = data.narrative_state;
+        }
+        
+        // Play voice
+        playNarratorVoice(data.commentary, data.voice);
+        
+    } catch (err) {
+        console.error("Narrative request failed:", err);
+        // Fallback text rendering if offline and we have events
+        if (batch.length > 0) {
+            const fallbackText = getLocalFallbackText(batch[batch.length - 1]);
+            renderCommentaryText(fallbackText);
+            playNarratorVoice(fallbackText, 'Jasper');
+        }
+    }
+}
+
+// Keep direct sendCommentaryRequest for immediate events (game_start & crash)
 async function sendCommentaryRequest(ev, isCrash = false) {
     updateDebugEventPanel(ev);
     
@@ -1459,6 +1608,9 @@ async function playNarratorVoice(text, voice) {
     // Cancel any currently playing speech source
     stopAudio();
     
+    currentTtsRequestId++;
+    const myRequestId = currentTtsRequestId;
+    
     if (serverTtsEnabled) {
         // Fetch audio bytes from Flask
         try {
@@ -1467,6 +1619,8 @@ async function playNarratorVoice(text, voice) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text, voice })
             });
+            
+            if (myRequestId !== currentTtsRequestId) return; // Discard if a newer request started
             
             if (response.status === 503) {
                 // Fallen back mid-game?
@@ -1478,7 +1632,11 @@ async function playNarratorVoice(text, voice) {
             const audioBuffer = await response.arrayBuffer();
             initAudio();
             
+            if (myRequestId !== currentTtsRequestId) return; // Discard if a newer request started
+            
             audioCtx.decodeAudioData(audioBuffer, (decodedData) => {
+                if (myRequestId !== currentTtsRequestId) return; // Discard if a newer request started
+                
                 const source = audioCtx.createBufferSource();
                 source.buffer = decodedData;
                 
@@ -1493,11 +1651,15 @@ async function playNarratorVoice(text, voice) {
                 currentAudioSource = source;
             }, (e) => {
                 console.error("Error decoding audio buffer:", e);
-                playBrowserTtsFallback(text, voice);
+                if (myRequestId === currentTtsRequestId) {
+                    playBrowserTtsFallback(text, voice);
+                }
             });
         } catch (err) {
             console.error("Flask TTS request failed, using browser Web Speech:", err);
-            playBrowserTtsFallback(text, voice);
+            if (myRequestId === currentTtsRequestId) {
+                playBrowserTtsFallback(text, voice);
+            }
         }
     } else {
         playBrowserTtsFallback(text, voice);
@@ -1622,7 +1784,8 @@ function restartGame() {
     elapsedPlayTime = 0;
     gameSpeed = BASE_SPEED;
     recentEvents = [];
-    pendingEvent = null;
+    narrativeBuffer.events = [];
+    narrativeBuffer.lastTickTime = 0;
     processedNearMisses.clear();
     processedOvertakes.clear();
     

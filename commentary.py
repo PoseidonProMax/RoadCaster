@@ -10,9 +10,9 @@ class CommentaryEngine:
         # key: template string, value: turn counter when it was last used
         self.used_templates = {}
         self.turn_counter = 0
-        self.cooldown_turns = 8
+        self.cooldown_turns = 6
 
-        # Define templates for each mode
+        # Define templates for each mode and narrative state
         self.templates = {
             "sports": {
                 "game_start": [
@@ -22,150 +22,128 @@ class CommentaryEngine:
                     "The lights are green and we are live from the fastest highway on earth!",
                     "We're rolling! Fasten your seatbelts, this is going to be intense!"
                 ],
-                "near_miss": [
-                    "INCREDIBLE reflexes! That was centimeters from disaster!",
-                    "That gap barely existed and they STILL found a way through!",
-                    "OH! The paint is trading between those two vehicles!",
-                    "How did they get through that?! Absolutely outrageous!",
-                    "The driver is living on the edge and LOVING it!",
-                    "A hair's breadth away from a massive pile-up!",
-                    "Talk about threading the needle! Magnificent car control!",
-                    "He squeezed through! My word, that was close!",
-                    "Unbelievable presence of mind to dodge that {vehicle}!",
-                    "Absolute nerves of steel from the driver there!",
-                    "The crowd is gasping! That was a coat of paint away from a crash!",
-                    "Dodge of the day! How did he avoid that {vehicle}?!"
-                ],
-                "near_miss_truck": [
-                    "Squeezing past a heavy TRUCK at these speeds! The courage is unreal!",
-                    "That truck nearly swallowed them whole! What a dodge!",
-                    "Dodging an absolute titan of the road! Brilliant reflexes!",
-                    "They just shook hands with a semi-truck and walked away!"
-                ],
-                "near_miss_bus": [
-                    "Slicing right past the commuter bus! That was way too close!",
-                    "A massive bus in the way, but they slip past like a shadow!",
-                    "My word, that bus almost ended the broadcast early!"
-                ],
-                "overtake": [
-                    "A clean pass! Just leaves them in the dust!",
-                    "Overtakes another one! Smooth as silk!",
-                    "Cruising past the traffic, making it look easy!",
-                    "Another vehicle neutralized! The driver is on a mission!",
-                    "Beautifully executed overtake there!",
-                    "Just flies past! The speed difference is massive!",
-                    "Leaving traffic behind like they're standing still!"
-                ],
-                "multi_overtake": [
-                    "Triple overtake! The driver is CARVING through traffic!",
-                    "Three vehicles beaten in seconds! This is championship driving!",
-                    "A flurry of passes! Absolute mastery on the highway!",
-                    "They are slicing through traffic like a hot knife through butter!"
-                ],
-                "combo_milestone": [
-                    "A combo of {combo}! The driver is in absolute FLOW state!",
-                    "Double digits on the combo! This is historic driving!",
-                    "Five near misses in a row! The driver is untouchable right now!",
-                    "Unstoppable! {combo} straight close calls and the crowd is going wild!"
-                ],
-                "speed_milestone": [
-                    "Breaking past {speed} km/h! This is territory for the brave!",
-                    "The speedometer is screaming! {speed} km/h and rising!",
-                    "We have entered hyperspeed! Absolute rocketship pace!",
-                    "Crossing {speed} km/h! The scenery is just a blur now!"
-                ],
-                "clean_streak": [
-                    "Cruising along nicely. A brief moment of calm on the highway.",
-                    "A clean run so far. The driver is picking their battles wisely.",
-                    "Showing some mature driving here, keeping a safe distance for now."
-                ],
-                "traffic_weave": [
-                    "Left, right, left! That is a masterclass in traffic weaving!",
-                    "Weaving through lanes like a professional slalom driver!",
-                    "A rapid-fire slalom! The agility of this car is breathtaking!"
-                ],
-                "recovery": [
-                    "Double trouble! A near-crash followed by another immediate dodge!",
-                    "Saved it! Recovered from one near-miss and executed another!",
-                    "Unbelievable recovery! Evasion after evasion!"
-                ],
-                "high_score": [
-                    "NEW HIGH SCORE! The driver is rewriting the history books!",
-                    "History is made! A new benchmark has been set!",
-                    "Unprecedented heights! They've just beaten the record!"
-                ],
                 "crash": [
                     "And that's the end of the line! What a run it was!",
                     "Contact! The incredible run comes to a dramatic end!",
                     "A devastating crash! The physics engine wins this round!",
                     "Oh! A catastrophic collision! That's game over folks!",
                     "Smash! The highway finally claims its victim. What a spectacle!"
+                ],
+                "TRAFFIC_CHAOS": [
+                    "This is absolute CHAOS on the highway! Evasions left and right!",
+                    "The traffic density is off the charts! How are they surviving this?",
+                    "Unbelievable traffic chaos! The driver is dodging cars like a madman!",
+                    "Absolute madness! It's a miracle they haven't crashed yet!"
+                ],
+                "HIGH_RISK_DRIVING": [
+                    "They are playing with fire! High speed near misses at {speed} km/h!",
+                    "That is high-risk, high-reward driving! The adrenaline must be pumping!",
+                    "Threading the needle at {speed} km/h! Absolutely fearless!",
+                    "High velocity, high danger! This is incredibly tense!"
+                ],
+                "CLUTCH_PERFORMANCE": [
+                    "A masterclass in reflexes! A peak combo of {combo} close calls!",
+                    "A combo of {combo}! The driver is in an absolute flow state!",
+                    "Incredible clutch play! That's {combo} consecutive close shaves!",
+                    "Unstoppable flow! That is a massive combo of {combo}!"
+                ],
+                "AGGRESSIVE_DRIVING": [
+                    "Carving through traffic! Overtaking everything in the blink of an eye!",
+                    "The driver is on an absolute tear, slicing through the slow lanes!",
+                    "Making aggressive passes left and right, leaving traffic in the dust!",
+                    "Absolutely dominant driving! Just slicing through the pack!"
+                ],
+                "BUILDING_MOMENTUM": [
+                    "The pace is ramping up, and the momentum is clearly building!",
+                    "Finding the rhythm now! Overtakes and dodges working in perfect harmony!",
+                    "Starting to cook! The driver is warming up on this stretch!",
+                    "Building speed and confidence with every passing second."
+                ],
+                "RECORD_PACE": [
+                    "Cruising at record pace! Pushing {speed} km/h on a clean run!",
+                    "Blistering speed! {speed} km/h and making it look like a walk in the park!",
+                    "This is championship pace! Absolutely flying down the asphalt!",
+                    "Setting the road on fire! The speedometer is screaming!"
+                ],
+                "RECOVERY_PHASE": [
+                    "A breath of fresh air after a near-disaster. Great job to stabilize!",
+                    "A crucial recovery. The driver cools things down and regains control.",
+                    "Excellent composure to recover from that chaotic sequence.",
+                    "Disaster averted! The driver successfully resets their focus."
+                ],
+                "TOTAL_CONTROL": [
+                    "Total control. A clean driving masterclass by this driver.",
+                    "Smooth, clean, and clinical. That is how you dominate the highway.",
+                    "No mistakes, pure execution. A master at work.",
+                    "A clinic in precision driving. Not a single scratch on the paint."
+                ],
+                "CALM_CRUISING": [
+                    "Cruising along the highway, waiting for the next opportunity.",
+                    "A temporary lull in the traffic. A chance to prepare for what lies ahead.",
+                    "A smooth, steady cruise on the open asphalt.",
+                    "Just settling in. Enjoying the hum of the engine on this stretch."
                 ]
             },
             "narrator": {
                 "game_start": [
-                    "Under the shadow of the night, the engine ignites.",
-                    "The highway stretch lies ahead, dark and unforgiving.",
+                    "Under the shadow of the day, the engine ignites.",
+                    "The highway stretch lies ahead, open and unforgiving.",
                     "A lone driver starts the ignition. The asphalt awaits.",
                     "The journey begins in silence, but the speed will speak.",
-                    "Into the neon-lit abyss we go."
-                ],
-                "near_miss": [
-                    "At this speed, every decision is life or death.",
-                    "The highway refuses to show mercy, but the driver refuses to stop.",
-                    "Another inch. Another heartbeat. Another escape.",
-                    "A dance with gravity, won by a fraction of a second.",
-                    "The gap was narrow. The survival, narrower.",
-                    "A close encounter with fate, resolved in milliseconds.",
-                    "Death whispered, but the driver didn't listen.",
-                    "A brushes-with-death simulator, played out in real time.",
-                    "The metal groaned, but the path remained clear."
-                ],
-                "near_miss_truck": [
-                    "The steel behemoth almost crushed the dream, but they slipped by.",
-                    "Dangling in the blind spot of a giant, they find escape."
-                ],
-                "near_miss_bus": [
-                    "A wall of glass and steel avoided. Barely."
-                ],
-                "overtake": [
-                    "Another soul left behind in the dark.",
-                    "A silent pass in the night.",
-                    "The taillights of others fade into the background.",
-                    "Progress is measured in the headlights left behind."
-                ],
-                "multi_overtake": [
-                    "They are moving through the traffic like a ghost.",
-                    "Three cars passed. The momentum is undeniable.",
-                    "A sequence of execution. Perfect. Precise."
-                ],
-                "combo_milestone": [
-                    "A streak of {combo}. Evasion has become second nature.",
-                    "Ten close calls. A testament to absolute focus.",
-                    "They are defying the odds, one close call at a time."
-                ],
-                "speed_milestone": [
-                    "The speed dials up to {speed}. The risk grows exponentially.",
-                    "At {speed} km/h, the highway becomes a tunnel of light."
-                ],
-                "clean_streak": [
-                    "A temporary peace. The calm before the storm.",
-                    "For a moment, the road is quiet."
-                ],
-                "traffic_weave": [
-                    "Rapid lane shifts. A kinetic symphony."
-                ],
-                "recovery": [
-                    "Chaos compound. One near miss morphs into another."
-                ],
-                "high_score": [
-                    "A new record. They have pushed past the known limits."
+                    "Into the vast horizon we go."
                 ],
                 "crash": [
                     "The highway always wins. In the end.",
                     "A flash of chrome, a screech of tires, and then... silence.",
                     "The run ends as all fast runs must: in spectacular ruin.",
                     "An abrupt end to a beautiful defiance."
+                ],
+                "TRAFFIC_CHAOS": [
+                    "Chaos surrounds them. The metal giants close in, yet the path remains.",
+                    "Surrounded by moving walls. Every direction is a hazard.",
+                    "The road is alive with movement, testing the limits of survival.",
+                    "A storm of steel and exhaust. A test of pure instinct."
+                ],
+                "HIGH_RISK_DRIVING": [
+                    "At {speed} km/h, the line between brave and foolish disappears.",
+                    "Velocity increases. Risk expands. Evasion becomes a necessity.",
+                    "Brushing past disaster at {speed} km/h. A dance with the void.",
+                    "The speedometer rises, and with it, the gravity of every move."
+                ],
+                "CLUTCH_PERFORMANCE": [
+                    "A streak of {combo}. Evasion has become second nature.",
+                    "A peak of {combo} close calls. A testament to absolute focus.",
+                    "Defying the odds, {combo} times over."
+                ],
+                "AGGRESSIVE_DRIVING": [
+                    "They move through traffic like a ghost in the daylight.",
+                    "A sequence of execution. Slicing past one, then another.",
+                    "The mirrors fill with those left behind. Progress is swift."
+                ],
+                "BUILDING_MOMENTUM": [
+                    "The rhythm is established. The pace quickens.",
+                    "A quiet confidence builds. The driver is finding their flow.",
+                    "Energy builds. The highway responds to the driver's intent."
+                ],
+                "RECORD_PACE": [
+                    "Flying at {speed} km/h. The world outside is a blur of colors.",
+                    "Unmatched speed. Unbroken focus. The road belongs to them.",
+                    "Testing the physical limits of the machine at {speed} km/h."
+                ],
+                "RECOVERY_PHASE": [
+                    "The storm passes. The heartbeat slows. Order returns.",
+                    "A critical escape. The driver breathes and resets.",
+                    "Composure is regained in the aftermath of chaos."
+                ],
+                "TOTAL_CONTROL": [
+                    "A clean line. A silent masterclass in precision.",
+                    "Total control. The car is an extension of the mind.",
+                    "No wasted motion. Pure, unadulterated execution."
+                ],
+                "CALM_CRUISING": [
+                    "A temporary peace. The calm before the next storm.",
+                    "For a moment, the road is quiet.",
+                    "Steady progress. The highway stretches out, peaceful."
                 ]
             },
             "savage": {
@@ -175,63 +153,59 @@ class CommentaryEngine:
                     "Starting a fresh run. The local body shops are excited.",
                     "We are live. Place your bets on when the crash happens."
                 ],
-                "near_miss": [
-                    "The insurance company has officially stopped watching.",
-                    "Several traffic laws are now filing for emotional distress.",
-                    "Nice dodge. Don't get cocky, it was 90% luck.",
-                    "Are we driving or trying to test the air bags?",
-                    "That was close enough to smell the other driver's cologne.",
-                    "A spectacular display of physics-defying stupidity.",
-                    "Almost a hood ornament! Try that again, I dare you.",
-                    "If you wanted to die, there are less expensive ways.",
-                    "The grim reaper is currently checking his watch.",
-                    "Close! But unfortunately for the viewers, you survived."
-                ],
-                "near_miss_truck": [
-                    "Almost got squashed like a bug by that semi. Cute.",
-                    "Trying to play chicken with a multi-ton truck. Bold strategy."
-                ],
-                "near_miss_bus": [
-                    "That bus nearly became your permanent address.",
-                    "Almost passenger of the month on that public transport!"
-                ],
-                "overtake": [
-                    "Passing granny in the slow lane. Groundbreaking.",
-                    "Wow, you overtook a car. Give yourself a medal.",
-                    "Another vehicle left wondering who taught you how to drive.",
-                    "Look at you go, overtaking traffic like a real driver."
-                ],
-                "multi_overtake": [
-                    "Look at the zigzag champion go. Calm down, Vin Diesel.",
-                    "Passing three cars at once. Show-off."
-                ],
-                "combo_milestone": [
-                    "A combo of {combo}. You're really stretching your guardian angel's patience.",
-                    "Double digit combo. The collision is going to be hilarious when it happens."
-                ],
-                "speed_milestone": [
-                    "Doing {speed} km/h? Your parents must be so proud.",
-                    "At {speed} km/h, your insurance premium just reached escape velocity."
-                ],
-                "clean_streak": [
-                    "Boring. Where are the close calls? I'm falling asleep here.",
-                    "A whole 10 seconds of sensible driving. Who are you and what did you do with the driver?"
-                ],
-                "traffic_weave": [
-                    "Weaving like a drunk driver at a slalom event."
-                ],
-                "recovery": [
-                    "Two near misses? Double the luck, zero the skill."
-                ],
-                "high_score": [
-                    "New high score. Great, now you'll never stop playing."
-                ],
                 "crash": [
                     "Well, physics wins again. Who saw that coming? Everyone.",
                     "And that, ladies and gentlemen, is why we have seatbelts.",
                     "Beautifully done. The car is now a modern art installation.",
                     "Game over. The towing company is on the way.",
                     "A crash at that speed? Yep, that'll buff right out."
+                ],
+                "TRAFFIC_CHAOS": [
+                    "Look at this mess. You're basically playing pinball with real cars.",
+                    "Are you trying to dodge traffic or collect insurance payouts?",
+                    "Traffic chaos! Try not to hit the side of a bus, okay?",
+                    "Absolute disaster area. Your driver's license should be archived."
+                ],
+                "HIGH_RISK_DRIVING": [
+                    "Doing {speed} km/h and dodging cars? Your insurance company is crying.",
+                    "High-risk driving. I hope you signed your organ donor card.",
+                    "Squeezing through gaps at {speed} km/h. Bold choice, let's see if it pays off.",
+                    "At this speed, you're one sneeze away from a spectacular bonfire."
+                ],
+                "CLUTCH_PERFORMANCE": [
+                    "A combo of {combo}? Cute. Your guardian angel deserves a raise.",
+                    "Peak combo of {combo}. Don't get cocky, it was 90% luck.",
+                    "You dodged {combo} cars in a row? Who wrote this script?"
+                ],
+                "AGGRESSIVE_DRIVING": [
+                    "Aggressive passes. Calm down, Vin Diesel, it's just traffic.",
+                    "Overtaking left and right. Are we in a rush to get to a red light?",
+                    "Slicing through traffic. You're really trying hard to look cool, huh?"
+                ],
+                "BUILDING_MOMENTUM": [
+                    "Oh look, we're actually making progress. Don't ruin it.",
+                    "Momentum is building. Let's see how fast you can mess this up.",
+                    "Ramping up the speed. The tow truck driver is putting his boots on."
+                ],
+                "RECORD_PACE": [
+                    "Record pace at {speed} km/h? Hope the police aren't watching.",
+                    "Flying at {speed} km/h. If you crash now, they'll need a shovel, not a tow truck.",
+                    "Speeding down the highway. Groundbreaking stuff here."
+                ],
+                "RECOVERY_PHASE": [
+                    "Wow, you actually saved it. I'm almost disappointed.",
+                    "Look who managed to not crash after that mess. Impressive.",
+                    "A successful recovery. Back to the boring cruising state, I guess."
+                ],
+                "TOTAL_CONTROL": [
+                    "Total control. Boring! Bring back the near misses!",
+                    "A clean streak. Did you forget where the accelerator pedal is?",
+                    "Driving normally. Very exciting. Ten out of ten."
+                ],
+                "CALM_CRUISING": [
+                    "Boring. Where are the close calls? I'm falling asleep here.",
+                    "A whole stretch of sensible driving. Absolutely thrilling.",
+                    "Just cruising. Slower than my grandma on a Sunday morning."
                 ]
             }
         }
@@ -243,59 +217,46 @@ class CommentaryEngine:
             "savage": "Kiki"
         }
 
-    def generate(self, event_data: Dict[str, Any], mode: str = "sports") -> Dict[str, Any]:
+    def generate(self, narrative_data: Dict[str, Any], mode: str = "sports") -> Dict[str, Any]:
         self.turn_counter += 1
         mode = mode.lower()
         if mode not in self.templates:
             mode = "sports"
 
-        event = event_data.get("event", "overtake")
-        speed = int(event_data.get("speed", 0))
-        combo = int(event_data.get("combo", 0))
-        vehicle_type = event_data.get("vehicle_type", "car").lower()
-        distance = event_data.get("distance", 0.5)
-
-        # Build context tags
-        context_tags = []
-        if speed > 150:
-            context_tags.append("high_speed")
-        if speed > 200:
-            context_tags.append("extreme_speed")
-        if event_data.get("traffic_density") == "high":
-            context_tags.append("heavy_traffic")
-        if combo >= 10:
-            context_tags.append("combo_10")
-        elif combo >= 5:
-            context_tags.append("combo_5")
-        if event_data.get("is_high_score"):
-            context_tags.append("high_score")
-
-        # Determine momentum
-        recent_events = event_data.get("recent_events", [])
-        exciting_events = {"near_miss", "multi_overtake", "recovery", "traffic_weave"}
-        exciting_count = sum(1 for e in recent_events[-3:] if e in exciting_events)
-        if exciting_count >= 2:
-            momentum = "rising"
-        elif exciting_count == 0:
-            momentum = "falling"
+        # Check if we got a raw event-style dictionary or a NarrativeResult
+        if "state" in narrative_data:
+            state = narrative_data["state"]
+            stats = narrative_data.get("stats", {})
+            speed = stats.get("avg_speed", 0)
+            combo = stats.get("combo_peak", 0)
+            context_tags = narrative_data.get("context_tags", [])
         else:
-            momentum = "calm"
-
-        # Determine which template pool to use
-        pool_name = event
-        
-        # Override pool based on specific context for near misses
-        if event == "near_miss":
-            if vehicle_type == "truck" and f"near_miss_truck" in self.templates[mode]:
-                pool_name = "near_miss_truck"
-            elif vehicle_type == "bus" and f"near_miss_bus" in self.templates[mode]:
-                pool_name = "near_miss_bus"
+            # Fallback wrapper for raw events (e.g. crash, game_start)
+            state = narrative_data.get("event", "CALM_CRUISING")
+            speed = int(narrative_data.get("speed", 0))
+            combo = int(narrative_data.get("combo", 0))
+            context_tags = []
+            stats = {
+                "avg_speed": speed,
+                "combo_peak": combo,
+                "overtakes_in_window": 1 if state in ("overtake", "multi_overtake") else 0,
+                "near_misses_in_window": 1 if state in ("near_miss", "recovery") else 0,
+            }
 
         # Safe fallback if pool doesn't exist
+        pool_name = state
         if pool_name not in self.templates[mode]:
-            pool_name = "near_miss" if "near" in pool_name else "overtake"
-            if pool_name not in self.templates[mode]:
-                pool_name = list(self.templates[mode].keys())[0]
+            # Try mapping raw event names to narrative states
+            if "near" in pool_name or pool_name == "recovery":
+                pool_name = "HIGH_RISK_DRIVING"
+            elif pool_name in ("overtake", "multi_overtake", "traffic_weave"):
+                pool_name = "AGGRESSIVE_DRIVING"
+            elif pool_name == "game_start":
+                pool_name = "game_start"
+            elif pool_name == "crash":
+                pool_name = "crash"
+            else:
+                pool_name = "CALM_CRUISING"
 
         pool = self.templates[mode][pool_name]
 
@@ -304,19 +265,27 @@ class CommentaryEngine:
 
         # Format template
         formatted_commentary = selected_template.format(
-            vehicle=vehicle_type,
             speed=speed,
             combo=combo,
-            score=event_data.get("total_score", 0),
-            distance=int(event_data.get("distance_survived", 0))
+            overtakes=stats.get("overtakes_in_window", 0),
+            near_misses=stats.get("near_misses_in_window", 0),
+            score=narrative_data.get("total_score", stats.get("total_score", 0)),
+            distance=stats.get("distance_survived", 0)
         )
 
         # Voice assignment
         voice = self.voices.get(mode, "Jasper")
 
+        # Determine backend momentum label for frontend compatibility
+        momentum = "calm"
+        if state in ("TRAFFIC_CHAOS", "HIGH_RISK_DRIVING", "AGGRESSIVE_DRIVING", "CLUTCH_PERFORMANCE"):
+            momentum = "rising"
+        elif state == "CALM_CRUISING":
+            momentum = "falling"
+
         return {
             "commentary": formatted_commentary,
-            "event_type": event,
+            "event_type": state,
             "context_tags": context_tags,
             "momentum": momentum,
             "mode": mode,

@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify, render_template, Response
 from game import validate_event_data
 from commentary import CommentaryEngine
 from tts_provider import KittenTTSProvider
+from narrative import NarrativeEngine
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
@@ -14,6 +15,7 @@ app = Flask(__name__)
 # Initialize singletons
 commentary_engine = CommentaryEngine()
 tts_provider = KittenTTSProvider()
+narrative_engine = NarrativeEngine()
 
 @app.route("/")
 def index():
@@ -39,6 +41,11 @@ def get_commentary():
         logger.warning(f"Event validation failed: {err_msg}")
         return jsonify({"error": err_msg}), 400
         
+    # Reset narrative engine on direct game start events
+    if data.get("event") == "game_start":
+        logger.info("Direct game_start event. Resetting narrative engine history.")
+        narrative_engine.reset()
+        
     mode = request.args.get("mode", "sports")
     try:
         commentary_data = commentary_engine.generate(data, mode=mode)
@@ -46,6 +53,42 @@ def get_commentary():
     except Exception as e:
         logger.error(f"Error generating commentary: {e}", exc_info=True)
         return jsonify({"error": "Internal error generating commentary"}), 500
+
+@app.route("/api/narrative", methods=["POST"])
+def get_narrative():
+    """Receives a batch of gameplay events, evaluates narrative state,
+    generates commentary, and returns it."""
+    data = request.json
+    if not data:
+        return jsonify({"error": "Invalid request body"}), 400
+        
+    events = data.get("events", [])
+    current_time = data.get("current_time", 0.0)
+    current_speed = data.get("current_speed", 0.0)
+    current_combo = data.get("current_combo", 0)
+    
+    # Check for game start to reset the narrative history
+    for ev in events:
+        if ev.get("event") == "game_start":
+            logger.info("Game start event detected in batch. Resetting narrative engine history.")
+            narrative_engine.reset()
+            
+    mode = request.args.get("mode", "sports")
+    
+    try:
+        result = narrative_engine.evaluate(events, current_time, current_speed, current_combo)
+        
+        if not result["should_speak"]:
+            return jsonify({"skip": True})
+            
+        commentary = commentary_engine.generate(result, mode=mode)
+        # Add narrative state and stats for debugging / rendering
+        commentary["narrative_state"] = result["state"]
+        commentary["stats"] = result["stats"]
+        return jsonify(commentary)
+    except Exception as e:
+        logger.error(f"Error generating narrative commentary: {e}", exc_info=True)
+        return jsonify({"error": "Internal error generating narrative commentary"}), 500
 
 @app.route("/api/tts", methods=["POST"])
 def get_tts():
